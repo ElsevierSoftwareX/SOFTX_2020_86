@@ -3,8 +3,9 @@
 status of each benchmark:
 
 compile scripts: todo  
+Add vkcomp as shared header: todo
 
-2DCONV kernels done; todo host  
+2DCONV -> ALL DONE. NO TESTING   
 2MM kernels done; todo: host    
 3DCONV all todo  
 3MM all todo  
