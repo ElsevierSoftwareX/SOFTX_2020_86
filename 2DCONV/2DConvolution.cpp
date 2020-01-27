@@ -10,9 +10,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 
-//TODO: add proper headers here
-
+#include "../vkcomp/VulkanCompute.h"
+#include "../vkcomp/stdafx.h"
 #include "../polybenchUtilFuncts.h"
 
 //define the error threshold for the results "not matching"
@@ -133,10 +134,10 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
 
-	vk->startCreatePipeline();
-		vk.setArg(PPTR(A_gpu),"conv2DKernel",4);
-		vk.setArg(PPTR(B_gpu),"conv2DKernel",5);
-		vk.setLaunchConfiguration(grid,block);
+	vk->startCreatePipeline("CONV2D");
+		vk->setArg(PPTR(A_gpu),"conv2DKernel",4);
+		vk->setArg(PPTR(B_gpu),"conv2DKernel",5);
+		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
 	vk->startCreateCommandList();

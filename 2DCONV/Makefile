@@ -8,26 +8,33 @@ INCLUDE = -I$(VKHEADERSDIR) -I$(VKCOMPDIR)
 
 .PHONY: default all clean
 
-default: $(TARGET)
-all: default
-
 #SRC_FILES := $(wildcard $(SRC_DIR)/*.cpp)
 #OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 #OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 #HEADERS = $(wildcard *.h)
 
-SRC_FILES := $(wildcard $(VKCOMPDIR)/*.cpp)
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, %.o, $(SRC_FILES))
+SRC_FILES = $(wildcard $(VKCOMPDIR)/*.cpp)
+OBJECTS = $(patsubst $(VKCOMPDIR)/%.cpp, %.o, $(SRC_FILES))
 HEADERS = $(wildcard *.h)
 
-%.o: %.cpp $(HEADERS)
-	$(CC) $(CFLAGS) $(CDEFINES) -c $< $(VKHEADERSDIR) -o $@
+%.o: $(VKCOMPDIR)/%.cpp #$(HEADERS)
+	$(CC) $(CFLAGS) $(CDEFINES) -c $< -I$(VKHEADERSDIR) -o $@
 
-.PRECIOUS: $(TARGET) $(OBJECTS)
+all: default
+default: $(TARGET)
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -o $@
+$(info $$SRC_FILES is [${SRC_FILES}])
+$(info $$OBJECTS is [${OBJECTS}])
+
+#.PRECIOUS: $(TARGET)
+
+$(TARGET): $(OBJECTS) 2DConvolution.o
+	$(CC) -o $@ $(OBJECTS) 2DConvolution.o $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+
+2DConvolution.o: 2DConvolution.cpp
+	$(CC) $(CFLAGS) -o $@ -c 2DConvolution.cpp  $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+
 
 clean:
 	-rm -f *.o
