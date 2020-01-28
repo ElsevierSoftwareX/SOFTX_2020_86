@@ -45,7 +45,7 @@ void conv2D(DATA_TYPE* A, DATA_TYPE* B)
 		for (j = 1; j < NJ - 1; ++j) // 1
 		{
 			B[i*NJ + j] = c11 * A[(i - 1)*NJ + (j - 1)]  +  c12 * A[(i + 0)*NJ + (j - 1)]  +  c13 * A[(i + 1)*NJ + (j - 1)]
-				+ c21 * A[(i - 1)*NJ + (j + 0)]  +  c22 * A[(i + 0)*NJ + (j + 0)]  +  c23 * A[(i + 1)*NJ + (j + 0)] 
+				+ c21 * A[(i - 1)*NJ + (j + 0)]  +  c22 * A[(i + 0)*NJ + (j + 0)]  +  c23 * A[(i + 1)*NJ + (j + 0)]
 				+ c31 * A[(i - 1)*NJ + (j + 1)]  +  c32 * A[(i + 0)*NJ + (j + 1)]  +  c33 * A[(i + 1)*NJ + (j + 1)];
 		}
 	}
@@ -71,22 +71,20 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 {
 	int i, j, fail;
 	fail = 0;
-	
 	// Compare a and b
-	for (i=1; i < (NI-1); i++) 
+	for (i=1; i < (NI-1); i++)
 	{
-		for (j=1; j < (NJ-1); j++) 
+		for (j=1; j < (NJ-1); j++)
 		{
-			if (percentDiff(B[i*NJ + j], B_outputFromGpu[i*NJ + j]) > PERCENT_DIFF_ERROR_THRESHOLD) 
+			//std::cout << B[i*NJ+j] << " " << B_outputFromGpu[i*NJ+j] << std::endl;
+			if (percentDiff(B[i*NJ + j], B_outputFromGpu[i*NJ + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
 			{
 				fail++;
 			}
 		}
 	}
-	
 	// Print results
 	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
-	
 }
 
 
@@ -116,10 +114,9 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 
 	//4,5
 	DATA_TYPE *A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
-    DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
-	init(A_gpu); //init A values here.
+    	DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
 
-	A = A_gpu; // "copy" back the data for main function
+	memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
 
 	//cudaMemcpy(A_gpu, A, sizeof(DATA_TYPE) * NI * NJ, cudaMemcpyHostToDevice);
 	vk->startCreateCommandList();
@@ -134,7 +131,7 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
 
-	vk->startCreatePipeline("CONV2D");
+	vk->startCreatePipeline("conv2DKernel");
 		vk->setArg(PPTR(A_gpu),"conv2DKernel",4);
 		vk->setArg(PPTR(B_gpu),"conv2DKernel",5);
 		vk->setLaunchConfiguration(grid,block);
@@ -165,7 +162,7 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 	vk->submitWork();
 	vk->deviceSynch();
 
-	B_outputFromGpu = B_gpu; 
+	memcpy(B_outputFromGpu,B_gpu,sizeof(DATA_TYPE)*NI*NJ);
 
 	/*cudaFree(A_gpu);
 	cudaFree(B_gpu);*/
@@ -176,28 +173,28 @@ int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 
-	DATA_TYPE* A; //alloc'd both host and device in convolution2DVk. Also initialized there
+	DATA_TYPE* A = (DATA_TYPE*)malloc(NI*NJ*sizeof(DATA_TYPE));
 	DATA_TYPE* B = (DATA_TYPE*)malloc(NI*NJ*sizeof(DATA_TYPE));
-	DATA_TYPE* B_outputFromGpu; //alloc'd both host and device in convolution2DVk
-	
+	DATA_TYPE* B_outputFromGpu = (DATA_TYPE*)malloc(NI*NJ*sizeof(DATA_TYPE));
+	init(A);
+
 	VulkanCompute vk;
 	GPU_argv_init(&vk);
 
 	convolution2DVk(&vk, A, B_outputFromGpu);
-	
+
 	t_start = rtclock();
 	conv2D(A, B);
 	t_end = rtclock();
 	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
-	
+
 	compareResults(B, B_outputFromGpu);
 
-	/*free(A);
+	free(A);
 	free(B);
-	free(B_outputFromGpu);*/
-	//should take care of all allocations (H and D)
-	vk.freeResources();
-	
-	return 0;
-}
+	free(B_outputFromGpu);
 
+	vk.freeResources();
+
+	return EXIT_SUCCESS;
+}

@@ -29,14 +29,13 @@ $(info $$OBJECTS is [${OBJECTS}])
 
 #.PRECIOUS: $(TARGET)
 
-$(TARGET): $(OBJECTS) 2DConvolution.o
-	$(CC) -o $@ $(OBJECTS) 2DConvolution.o $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+$(TARGET): $(OBJECTS) $(TARGET).o
+	$(CC) -o $@ $(OBJECTS) $(TARGET).o $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
 
-2DConvolution.o: 2DConvolution.cpp
-	$(CC) $(CFLAGS) -o $@ -c 2DConvolution.cpp  $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+$(TARGET).o: $(TARGET).cpp
+	$(CC) $(CFLAGS) -o $@ -c $(TARGET).cpp  $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
 
 
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
-
