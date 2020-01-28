@@ -91,7 +91,7 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 		{
 			for (k = 1; k < NK - 1; ++k) // 2
 			{
-                if(count%100==0) std::cout << "CCHECK [" << count << "] " << B[i*(NK * NJ) + j*NK + k] << "/" << B_outputFromGpu[i*(NK * NJ) + j*NK + k] << std::endl;
+                if(count%550==0) std::cout << "CCHECK [" << count << "] " << B[i*(NK * NJ) + j*NK + k] << "/" << B_outputFromGpu[i*(NK * NJ) + j*NK + k] << std::endl;
                 count++;
 				if (percentDiff(B[i*(NK * NJ) + j*NK + k], B_outputFromGpu[i*(NK * NJ) + j*NK + k]) > PERCENT_DIFF_ERROR_THRESHOLD)
 				{
@@ -148,12 +148,12 @@ void convolution3DVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYP
     vk->startCreatePipeline("conv3DKernel");
 		vk->setArg(PPTR(A_gpu),"conv3DKernel",4);
 		vk->setArg(PPTR(B_gpu),"conv3DKernel",5);
-        vk.setSymbol(0, sizeof(int));
+        vk->setSymbol(0, sizeof(int));
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
     vk->startCreateCommandList();
-		vk->selectPipeline(hPipeline);
+	vk->selectPipeline(hPipeline);
         for(int i=0; i< NI-1; ++i){
              vk->copySymbolInt(i,"conv3DKernel",0);
              vk->launchComputation("conv3DKernel");
@@ -168,7 +168,7 @@ void convolution3DVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYP
 	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
 	
     vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(B_gpu),HOST_TO_DEVICE);
+		vk->synchBuffer(PPTR(B_gpu),DEVICE_TO_HOST);
 	vk->finalizeCommandList();
 	vk->submitWork();
 	vk->deviceSynch();
