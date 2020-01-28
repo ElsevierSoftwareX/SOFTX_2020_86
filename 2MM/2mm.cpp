@@ -12,7 +12,7 @@
 
 #include "../vkcomp/VulkanCompute.h"
 #include "../vkcomp/stdafx.h"
-#include "../../common/polybenchUtilFuncts.h"
+#include "../polybenchUtilFuncts.h"
 
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.05
@@ -64,7 +64,7 @@ void init_array(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D)
 	{
 		for (j = 0; j < NL; j++)
 		{
-			D[i*NL + j] = ((DATA_TYPE) i*(j+2)) / NK;	
+			D[i*NL + j] = ((DATA_TYPE) i*(j+2)) / NK;
 		}
 	}
 }
@@ -74,11 +74,14 @@ void compareResults(DATA_TYPE *E, DATA_TYPE *E_outputFromGpu)
 {
 	int i,j,fail;
 	fail = 0;
+	int count = 0;
 
 	for (i=0; i < NL; i++)
 	{
 		for (j=0; j < NI; j++)
 		{
+			if(count%200==0) std::cout << "CCHECK [" << count  <<  "] " << E[i*NI+j] << "/" << E_outputFromGpu[i*NI+j] << std::endl;
+			count++;
 			if (percentDiff(E[i*NI + j], E_outputFromGpu[i*NI + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
 			{
 				fail++;
@@ -103,6 +106,8 @@ void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* 
 	
   	for (i = 0; i < NI; i++)
 	{
+		if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
+
 		for (j = 0; j < NJ; j++)
 		{
 			C[i*NJ + j] = 0.0;
@@ -115,6 +120,9 @@ void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* 
 	
 	for (i = 0; i < NI; i++)
 	{
+
+		if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
+
 		for (j = 0; j < NL; j++)
 		{
 			E[i*NL + j] = 0.0;
