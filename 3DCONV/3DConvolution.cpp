@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
     VulkanCompute vk;
 	GPU_argv_init(&vk);
 
-	convolution3DVulkan(A, B, B_outputFromGpu);
+	convolution3DVulkan(&vk, A, B, B_outputFromGpu);
 
 	t_start = rtclock();
 	conv3D(A, B);
