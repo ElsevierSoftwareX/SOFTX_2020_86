@@ -2,14 +2,14 @@
 
 status of each benchmark:
 
-compile scripts: todo  
-Add vkcomp as shared header: todo
+compile scripts: in progress   
+Add vkcomp as shared header: in progress  
 
-2DCONV -> ALL DONE. NO TESTING   
-2MM kernels done; todo: host    
-3DCONV all todo  
-3MM all todo  
-ATAX all todo  
+2DCONV -> ALL DONE.     
+2MM -> ALL DONE.      
+3DCONV -> ALL DONE.   
+3MM -> ALL DONE, NO TESTING    
+ATAX -> ALL DONE, NO TESTING  
 BICG all todo  
 CORR all todo  
 COVAR all todo  
