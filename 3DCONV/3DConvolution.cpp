@@ -112,7 +112,7 @@ void GPU_argv_init(VulkanCompute *vk)
 	vk->printContextInformation();
 }
 
-void convolution3DVulkan(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
+void convolution3DVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 {
 	double t_start, t_end;
 
