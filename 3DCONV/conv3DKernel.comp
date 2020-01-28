@@ -1,0 +1,61 @@
+
+#version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define NI 256
+#define NJ 256
+#define NK 256
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(push_constant) uniform PushConsts {
+    int i;
+} pushConsts;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_A
+{
+    DATA_TYPE elements[];
+}
+A;
+
+layout(set = 0, binding = 5) buffer d_B
+{
+    DATA_TYPE elements[];
+}
+B;
+
+
+void main()
+{
+	const uint k = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x;
+	const uint j = gl_LocalInvocationID.y + gl_WorkGroupID.y * gl_WorkGroupSize.y;
+
+	DATA_TYPE c11, c12, c13, c21, c22, c23, c31, c32, c33;
+
+	c11 = +2;  c21 = +5;  c31 = -8;
+	c12 = -3;  c22 = +6;  c32 = -9;
+	c13 = +4;  c23 = +7;  c33 = +10;
+
+    int i = pushConsts.i;
+
+	if ((i < (NI-1)) && (j < (NJ-1)) &&  (k < (NK-1)) && (i > 0) && (j > 0) && (k > 0))
+	{
+		B.elements[i*(NK * NJ) + j*NK + k] = c11 * A.elements[(i - 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]  +  c13 * A.elements[(i + 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]
+					     +   c21 * A.elements[(i - 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]  +  c23 * A.elements[(i + 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]
+					     +   c31 * A.elements[(i - 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]  +  c33 * A.elements[(i + 1)*(NK * NJ) + (j - 1)*NK + (k - 1)]
+					     +   c12 * A.elements[(i + 0)*(NK * NJ) + (j - 1)*NK + (k + 0)]  +  c22 * A.elements[(i + 0)*(NK * NJ) + (j + 0)*NK + (k + 0)]   
+					     +   c32 * A.elements[(i + 0)*(NK * NJ) + (j + 1)*NK + (k + 0)]  +  c11 * A.elements[(i - 1)*(NK * NJ) + (j - 1)*NK + (k + 1)]  
+					     +   c13 * A.elements[(i + 1)*(NK * NJ) + (j - 1)*NK + (k + 1)]  +  c21 * A.elements[(i - 1)*(NK * NJ) + (j + 0)*NK + (k + 1)]  
+					     +   c23 * A.elements[(i + 1)*(NK * NJ) + (j + 0)*NK + (k + 1)]  +  c31 * A.elements[(i - 1)*(NK * NJ) + (j + 1)*NK + (k + 1)]  
+					     +   c33 * A.elements[(i + 1)*(NK * NJ) + (j + 1)*NK + (k + 1)];
+	}
+}
