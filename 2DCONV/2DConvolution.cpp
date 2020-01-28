@@ -114,7 +114,7 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 
 	//4,5
 	DATA_TYPE *A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
-    	DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
+    DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
 
 	memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
 

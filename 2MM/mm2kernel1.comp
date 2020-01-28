@@ -17,23 +17,23 @@ layout(local_size_z_id = 3) in;
 
 layout(std430) buffer;
 
-layout(set = 0, binding = 4) buffer A
+layout(set = 0, binding = 4) buffer d_A
 {
     DATA_TYPE elements[];
 }
-d_A;
+A;
 
-layout(set = 0, binding = 5) buffer B
+layout(set = 0, binding = 5) buffer d_B
 {
     DATA_TYPE elements[];
 }
-d_B;
+B;
 
-layout(set = 0, binding = 6) buffer C
+layout(set = 0, binding = 6) buffer d_C
 {
     DATA_TYPE elements[];
 }
-d_C;
+C;
 
 void main()
 {
