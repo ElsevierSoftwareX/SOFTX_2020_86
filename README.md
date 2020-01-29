@@ -10,8 +10,8 @@ Add vkcomp as shared header: in progress
 3DCONV -> ALL DONE.   
 3MM -> ALL DONE.  
 ATAX -> ALL DONE.  
-BICG -> ALL DONE. NO TESTING    
-CORR all todo  
+BICG -> ALL DONE.    
+CORR -> ALL DONE. NO TESTING.   
 COVAR all todo  
 FDTD-2D all todo  
 GEMM all todo  

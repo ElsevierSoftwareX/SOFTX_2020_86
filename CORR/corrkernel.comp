@@ -1,0 +1,54 @@
+#version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define M 2048
+#define N 2048
+#define FLOAT_N 3214212.01f
+#define EPS 0.005f
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_symmat
+{
+    DATA_TYPE elements[];
+}
+symmat;
+
+layout(set = 0, binding = 5) buffer d_data
+{
+    DATA_TYPE elements[];
+}
+data;
+
+void main()
+{
+
+    const uint j1 = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x + 1;
+
+	int i, j2;
+	if ((j1 >= 1) && (j1 < M))
+	{
+		symmat.elements[j1*(M+1) + j1] = 1.0;
+
+		for (j2 = (j1 + 1); j2 < (M+1); j2++)
+		{
+			symmat.elements[j1*(M+1) + j2] = 0.0;
+
+			for(i = 1; i < (N+1); i++)
+			{
+				symmat.elements[j1*(M+1) + j2] += data.elements[i*(M+1) + j1] * data.elements[i*(M+1) + j2];
+			}
+			symmat.elements[j2*(M+1) + j1] = symmat.elements[j1*(M+1) + j2];
+		}
+	}
+
+}

@@ -137,7 +137,7 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
     memcpy(y_gpu,y,sizeof(DATA_TYPE) * NY);
     memcpy(tmp_gpu,tmp,sizeof(DATA_TYPE) * NX);
 
-     vk->startCreateCommandList();
+    vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
         vk->synchBuffer(PPTR(x_gpu),HOST_TO_DEVICE);
         vk->synchBuffer(PPTR(y_gpu),HOST_TO_DEVICE);
