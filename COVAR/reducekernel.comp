@@ -1,4 +1,4 @@
-version 450
+#version 450
 
 /*
 TODO: would be MUCH more elegant to move this in a shared header file

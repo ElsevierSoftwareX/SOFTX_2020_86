@@ -105,7 +105,7 @@ void compareResults(DATA_TYPE* symmat, DATA_TYPE* symmat_outputFromGpu)
 	{
 		for (j=1; j < (N+1); j++)
 		{
-            if(count%250==0) std::cout << "CCHECK [" << count << "] " << symmat[i] << "/" << symmat_outputFromGpu[i] << std::endl;
+            if(count%250==0) std::cout << "CCHECK [" << count << "] " << symmat[i*(N+1)+j] << "/" << symmat_outputFromGpu[i*(N+1)+j] << std::endl;
             count++;
 
 			if (percentDiff(symmat[i*(N+1) + j], symmat_outputFromGpu[i*(N+1) + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
@@ -159,10 +159,10 @@ void covarianceVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* symmat, DAT
 	}
 
 	DATA_TYPE *data_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
-    DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (M+1), BufferUsage::BUF_INOUT);
-	DATA_TYPE *mean_gpu = = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
+    	DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (M+1), BufferUsage::BUF_INOUT);
+	DATA_TYPE *mean_gpu =  (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 	
-	memcpy(data_gpu, data, sizeof(DATA_TYPE) * (M+1) * (N+1);
+	memcpy(data_gpu, data, sizeof(DATA_TYPE) * (M+1) * (N+1));
 	memcpy(symmat_gpu, symmat, sizeof(DATA_TYPE) * (M+1) * (M+1));
 	memcpy(mean_gpu, mean, sizeof(DATA_TYPE) * (M+1));
 
