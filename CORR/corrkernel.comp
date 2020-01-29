@@ -32,7 +32,8 @@ data;
 void main()
 {
 
-    const uint j1 = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x + 1;
+        const int j10 = int(gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x);
+	int j1 = j10 + 1;
 
 	int i, j2;
 	if ((j1 >= 1) && (j1 < M))
@@ -50,5 +51,13 @@ void main()
 			symmat.elements[j2*(M+1) + j1] = symmat.elements[j1*(M+1) + j2];
 		}
 	}
+
+
+	if(j10==0){
+		DATA_TYPE valueAtSymmatIndexMTimesMPlus1PlusMPoint = 1.0;
+		//cudaMemcpy(&(symmat_gpu[(M)*(M+1) + (M)]), &valueAtSymmatIndexMTimesMPlus1PlusMPoint, sizeof(DATA_TYPE), cudaMemcpyHostToDevice);
+		symmat.elements[M*(M+1)+M] = valueAtSymmatIndexMTimesMPlus1PlusMPoint;
+	}
+
 
 }

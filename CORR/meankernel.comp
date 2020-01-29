@@ -43,6 +43,6 @@ void main()
 			mean.elements[j] += data.elements[i*(M+1) + j];
 		}
 		
-		mean.elements[j] /= (DATA_TYPE)FLOAT_N;
+		mean.elements[j] /= DATA_TYPE(FLOAT_N);
 	}
 }
