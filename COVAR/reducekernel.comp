@@ -1,0 +1,43 @@
+version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define M 2048
+#define N 2048
+#define FLOAT_N 3214212.01
+#define EPS 0.005
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_mean
+{
+    DATA_TYPE elements[];
+}
+mean;
+
+layout(set = 0, binding = 5) buffer d_data
+{
+    DATA_TYPE elements[];
+}
+data;
+
+void main()
+{
+
+    const uint j = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x + 1;
+    const uint i = gl_LocalInvocationID.y + gl_WorkGroupID.y * gl_WorkGroupSize.y + 1;
+
+	if ((i >= 1) && (i < (N+1)) && (j >= 1) && (j < (M+1)))
+	{
+		data.elements[i * (M+1) + j] -= mean.elements[j];	
+	}
+
+}

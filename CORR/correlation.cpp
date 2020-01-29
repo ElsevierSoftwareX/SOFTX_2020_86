@@ -1,5 +1,5 @@
 /**
- * bicg.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
+ * corrleation.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
  * Vulkan version
  */
 
@@ -199,7 +199,7 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 	}
 
 	DATA_TYPE *data_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
-    	DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
+    DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *stddev_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *mean_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 	
@@ -220,41 +220,41 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
     /*  
 	dim3 block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
 	dim3 grid1((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_1_X)), 1);*/
-    	ComputeWorkDistribution_t block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
+    ComputeWorkDistribution_t block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
 	ComputeWorkDistribution_t grid1((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_1_X)), 1);
   
 	/*dim3 block2(DIM_THREAD_BLOCK_KERNEL_2_X, DIM_THREAD_BLOCK_KERNEL_2_Y);
 	dim3 grid2((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_2_X)), 1);*/
-    	ComputeWorkDistribution_t block2(DIM_THREAD_BLOCK_KERNEL_2_X, DIM_THREAD_BLOCK_KERNEL_2_Y);
+    ComputeWorkDistribution_t block2(DIM_THREAD_BLOCK_KERNEL_2_X, DIM_THREAD_BLOCK_KERNEL_2_Y);
 	ComputeWorkDistribution_t grid2((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_2_X)), 1);
 	
 	/*dim3 block3(DIM_THREAD_BLOCK_KERNEL_3_X, DIM_THREAD_BLOCK_KERNEL_3_Y);
 	dim3 grid3((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_X)), (size_t)(ceil((float)(N)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_Y)));*/
-    	ComputeWorkDistribution_t block3(DIM_THREAD_BLOCK_KERNEL_3_X, DIM_THREAD_BLOCK_KERNEL_3_Y);
+    ComputeWorkDistribution_t block3(DIM_THREAD_BLOCK_KERNEL_3_X, DIM_THREAD_BLOCK_KERNEL_3_Y);
 	ComputeWorkDistribution_t grid3((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_X)), (size_t)(ceil((float)(N)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_Y)));
 
 	/*dim3 block4(DIM_THREAD_BLOCK_KERNEL_4_X, DIM_THREAD_BLOCK_KERNEL_4_Y);
 	dim3 grid4((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_4_X)), 1);*/
-    	ComputeWorkDistribution_t block4(DIM_THREAD_BLOCK_KERNEL_4_X, DIM_THREAD_BLOCK_KERNEL_4_Y);
+    ComputeWorkDistribution_t block4(DIM_THREAD_BLOCK_KERNEL_4_X, DIM_THREAD_BLOCK_KERNEL_4_Y);
 	ComputeWorkDistribution_t grid4((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_4_X)), 1);
 
-    	vk->startCreatePipeline("meankernel");
+    vk->startCreatePipeline("meankernel");
 		vk->setArg(PPTR(mean_gpu),"meankernel",4);
 		vk->setArg(PPTR(data_gpu),"meankernel",5);
 		vk->setLaunchConfiguration(grid1,block1);
 	PIPELINE_HANDLE hPipeline1 = vk->finalizePipeline();
 
-    	vk->startCreatePipeline("stdkernel");
+    vk->startCreatePipeline("stdkernel");
 		vk->setArg(PPTR(mean_gpu),"stdkernel",4);
 		vk->setArg(PPTR(stddev_gpu),"stdkernel",5);
         vk->setArg(PPTR(data_gpu),"stdkernel",6);
 		vk->setLaunchConfiguration(grid2,block2);
 	PIPELINE_HANDLE hPipeline2 = vk->finalizePipeline();
 
-    	vk->startCreatePipeline("reducekernel");
+    vk->startCreatePipeline("reducekernel");
 		vk->setArg(PPTR(mean_gpu),"reducekernel",4);
 		vk->setArg(PPTR(stddev_gpu),"reducekernel",5);
-        	vk->setArg(PPTR(data_gpu),"reducekernel",6);
+        vk->setArg(PPTR(data_gpu),"reducekernel",6);
 		vk->setLaunchConfiguration(grid3,block3);
 	PIPELINE_HANDLE hPipeline3 = vk->finalizePipeline();
 
@@ -265,8 +265,8 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 	PIPELINE_HANDLE hPipeline4 = vk->finalizePipeline();
 
     vk->startCreateCommandList();
-	vk->selectPipeline(hPipeline1);
-	vk->launchComputation("meankernel");
+		vk->selectPipeline(hPipeline1);
+		vk->launchComputation("meankernel");
         vk->selectPipeline(hPipeline2);
         vk->launchComputation("stdkernel");
         vk->selectPipeline(hPipeline3);
@@ -297,7 +297,7 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 	I am using my brain properly and I'll put this instruction into the last kernel (to be executed by thread with global id 0).
 	*/
 
-    	vk->startCreateCommandList();
+    vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(symmat_gpu),DEVICE_TO_HOST);
 	vk->finalizeCommandList();
 	vk->submitWork();
