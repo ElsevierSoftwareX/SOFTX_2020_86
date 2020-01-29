@@ -98,11 +98,12 @@ void compareResults(DATA_TYPE* hz1, DATA_TYPE* hz2)
 	{
 		for (j=0; j < NY; j++) 
 		{
-            if(count%250==0) std::cout << "CCHECK [" << count << "] " << hz1[i*NY + j] << "/" << hz2[i*NY + j] << std::endl;
+            //if(count%250==0) std::cout << "CCHECK [" << count << "] " << hz1[i*NY + j] << "/" << hz2[i*NY + j] << std::endl;
             count++;
 
 			if (percentDiff(hz1[i*NY + j], hz2[i*NY + j]) > PERCENT_DIFF_ERROR_THRESHOLD) 
 			{
+				std::cout << "Discrepancy in " << hz1[i*NY+j] <<  "/" << hz2[i*NY+j] << std::endl;
 				fail++;
 			}
 		}
