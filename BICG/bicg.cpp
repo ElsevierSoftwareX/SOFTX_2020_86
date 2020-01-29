@@ -64,7 +64,7 @@ void compareResults(DATA_TYPE* s, DATA_TYPE* s_outputFromGpu, DATA_TYPE* q, DATA
 	// Compare s with s_cuda
 	for (i=0; i<NX; i++)
 	{
-        if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  q[i] << "/" << q_outputFromGpu[i] < << std::endl;
+        if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  q[i] << "/" << q_outputFromGpu[i] << std::endl;
         count++;
 
 		if (percentDiff(q[i], q_outputFromGpu[i]) > PERCENT_DIFF_ERROR_THRESHOLD)
@@ -77,7 +77,7 @@ void compareResults(DATA_TYPE* s, DATA_TYPE* s_outputFromGpu, DATA_TYPE* q, DATA
 
 	for (i=0; i<NY; i++)
 	{
-        if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  s[i] << "/" << s_outputFromGpu[i] < << std::endl;
+        if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  s[i] << "/" << s_outputFromGpu[i] << std::endl;
         count++;
 
 		if (percentDiff(s[i], s_outputFromGpu[i]) > PERCENT_DIFF_ERROR_THRESHOLD)
@@ -234,10 +234,10 @@ int main(int argc, char** argv)
 
 	init_array(A, p, r);
 
-    VulkanCompute vk;
+    	VulkanCompute vk;
 	GPU_argv_init(&vk);
 
-	bicgCuda(A, r, s, p, q, s_outputFromGpu, q_outputFromGpu);
+	bicgVulkan(&vk, A, r, s, p, q, s_outputFromGpu, q_outputFromGpu);
 
 	t_start = rtclock();
 	bicg_cpu(A, r, s, p, q);
@@ -254,7 +254,7 @@ int main(int argc, char** argv)
 	free(q);
 	free(s_outputFromGpu);
 	free(q_outputFromGpu);
-    vk.freeResources();
+    	vk.freeResources();
 
   	return EXIT_SUCCESS;
 }
