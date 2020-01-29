@@ -1,0 +1,54 @@
+#version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define tmax 500
+#define NX 2048
+#define NY 2048
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(push_constant) uniform PushConsts {
+    int t;
+} pushConsts;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_ex
+{
+    DATA_TYPE elements[];
+}
+ex;
+
+layout(set = 0, binding = 5) buffer d_ey
+{
+    DATA_TYPE elements[];
+}
+ey;
+
+layout(set = 0, binding = 6) buffer d_hz
+{
+    DATA_TYPE elements[];
+}
+hz;
+
+void main()
+{
+
+    const uint j = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x;
+    const uint i = gl_LocalInvocationID.y + gl_WorkGroupID.y * gl_WorkGroupSize.y;
+
+    int t = pushConsts.t;
+
+	if ((i < NX) && (j < NY) && (j > 0))
+	{
+		ex.elements[i * (NY+1) + j] = ex.elements[i * (NY+1) + j] - 0.5f*(hz.elements[i * NY + j] - hz.elements[i * NY + (j-1)]);
+	}
+
+}

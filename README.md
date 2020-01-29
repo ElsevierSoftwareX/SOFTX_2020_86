@@ -12,8 +12,8 @@ Add vkcomp as shared header: in progress
 ATAX -> ALL DONE.  
 BICG -> ALL DONE.    
 CORR -> ALL DONE.   
-COVAR -> ALL DONE. No Testing     
-FDTD-2D all todo  
+COVAR -> ALL DONE.     
+FDTD-2D -> ALL DONE, no testing    
 GEMM all todo  
 GESUMMV all todo  
 GRAMSCHM all todo  

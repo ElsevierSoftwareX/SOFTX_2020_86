@@ -159,7 +159,7 @@ void covarianceVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* symmat, DAT
 	}
 
 	DATA_TYPE *data_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
-    	DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (M+1), BufferUsage::BUF_INOUT);
+    DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (M+1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *mean_gpu =  (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 	
 	memcpy(data_gpu, data, sizeof(DATA_TYPE) * (M+1) * (N+1));
