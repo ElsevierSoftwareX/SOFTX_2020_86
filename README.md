@@ -13,7 +13,7 @@ ATAX -> ALL DONE.
 BICG -> ALL DONE.    
 CORR -> ALL DONE.   
 COVAR -> ALL DONE.     
-FDTD-2D -> ALL DONE, no testing    
+FDTD-2D -> ALL DONE. TEST: 2 errors      
 GEMM all todo  
 GESUMMV all todo  
 GRAMSCHM all todo  

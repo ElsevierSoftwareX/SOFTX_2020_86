@@ -1,0 +1,55 @@
+#version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define NI 512
+#define NJ 512
+#define NK 512
+#define ALPHA 32412.0f
+#define BETA 2123.0f
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_a
+{
+    DATA_TYPE elements[];
+}
+a;
+
+layout(set = 0, binding = 5) buffer d_b
+{
+    DATA_TYPE elements[];
+}
+b;
+
+layout(set = 0, binding = 5) buffer d_c
+{
+    DATA_TYPE elements[];
+}
+c;
+
+void main()
+{
+
+    const uint j = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x;
+    const uint i = gl_LocalInvocationID.y + gl_WorkGroupID.y * gl_WorkGroupSize.y;
+
+	if ((i < NI) && (j < NJ))
+	{	
+		c.elements[i * NJ + j] *= BETA;
+		int k;
+		for(k=0; k < NK; k++)
+		{
+			c.elements[i * NJ + j] += ALPHA * a.elements[i * NK + k] * b.elements[k * NJ +j];
+		}
+	}
+
+}
