@@ -1,10 +1,6 @@
 /**
- * atax.cu: This file is part of the PolyBench/GPU 1.0 test suite.
- *
- *
- * Contact: Scott Grauer-Gray <sgrauerg@gmail.com>
- * Louis-Noel Pouchet <pouchet@cse.ohio-state.edu>
- * Web address: http://www.cse.ohio-state.edu/~pouchet/software/polybench/GPU
+ * atax.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
+ * Vulkan version
  */
 
 #include <stdio.h>
