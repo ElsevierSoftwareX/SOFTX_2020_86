@@ -156,9 +156,9 @@ void gemmVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DAT
 	ComputeWorkDistribution_t grid((size_t)(ceil( ((float)NI)/ ((float)block.x) )),(size_t)(ceil( ((float)NJ)/ ((float)block.y) )));
 
      vk->startCreatePipeline("gemmkernel");
-		vk->setArg(PPTR(mean_gpu),"gemmkernel",4);
-		vk->setArg(PPTR(data_gpu),"gemmkernel",5);
-        vk->setArg(PPTR(data_gpu),"gemmkernel",6);
+		vk->setArg(PPTR(A_gpu),"gemmkernel",4);
+		vk->setArg(PPTR(B_gpu),"gemmkernel",5);
+        vk->setArg(PPTR(C_gpu),"gemmkernel",6);
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
