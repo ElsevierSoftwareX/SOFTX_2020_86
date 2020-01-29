@@ -270,7 +270,7 @@ void mm3Vulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA
 	vk->submitWork();
 	vk->deviceSynch();
 
-    memcpy(G_outputFromGpu,G_gpu,sizeof(DATA_TYPE) * NI * NL, cudaMemcpyDeviceToHost);
+    memcpy(G_outputFromGpu,G_gpu,sizeof(DATA_TYPE) * NI * NL);
 }
 
 

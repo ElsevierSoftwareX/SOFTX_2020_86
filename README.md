@@ -8,7 +8,7 @@ Add vkcomp as shared header: in progress
 2DCONV -> ALL DONE.     
 2MM -> ALL DONE.      
 3DCONV -> ALL DONE.   
-3MM -> ALL DONE, NO TESTING    
+3MM -> ALL DONE.  
 ATAX -> ALL DONE, NO TESTING  
 BICG all todo  
 CORR all todo  
