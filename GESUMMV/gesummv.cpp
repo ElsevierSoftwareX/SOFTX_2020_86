@@ -34,6 +34,8 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
+
 void gesummv(DATA_TYPE *A, DATA_TYPE *B, DATA_TYPE *x, DATA_TYPE *y, DATA_TYPE *tmp)
 {
 	int i, j;
@@ -78,9 +80,10 @@ void compareResults(DATA_TYPE* y, DATA_TYPE* y_outputFromGpu)
 	for (i=0; i<(N); i++) 
 	{
 
-        if(count%250==0) std::cout << "CCHECK [" << count << "] " << y[i] << "/" << y_outputFromGpu[i] << std::endl;
-        count++;
-
+        if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0)) 
+			std::cout << "CCHECK [" << count << "] " << y[i] << "/" << y_outputFromGpu[i] << std::endl;
+        
+		count++;
 		if (percentDiff(y[i], y_outputFromGpu[i]) > PERCENT_DIFF_ERROR_THRESHOLD) 
 		{
 			fail++;

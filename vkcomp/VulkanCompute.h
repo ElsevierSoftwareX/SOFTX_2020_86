@@ -139,7 +139,7 @@ private:
 	void destroyDebug();
 #endif
 
-	uint32_t getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props);
+	int32_t getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props);
 	const char *fromVKDeviceTypeToString(const VkPhysicalDeviceType dev_type);
 	template <typename T> void setUpPushConstant(T value, const uint32_t location);
 

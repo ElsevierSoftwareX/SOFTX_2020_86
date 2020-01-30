@@ -31,6 +31,8 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
+
 void conv3D(DATA_TYPE* A, DATA_TYPE* B)
 {
 	int i, j, k;
@@ -91,7 +93,10 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 		{
 			for (k = 1; k < NK - 1; ++k) // 2
 			{
-                if(count%550==0) std::cout << "CCHECK [" << count << "] " << B[i*(NK * NJ) + j*NK + k] << "/" << B_outputFromGpu[i*(NK * NJ) + j*NK + k] << std::endl;
+				
+				if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+                	std::cout << "CCHECK [" << count << "] " << B[i*(NK * NJ) + j*NK + k] << "/" << B_outputFromGpu[i*(NK * NJ) + j*NK + k] << std::endl;
+
                 count++;
 				if (percentDiff(B[i*(NK * NJ) + j*NK + k], B_outputFromGpu[i*(NK * NJ) + j*NK + k]) > PERCENT_DIFF_ERROR_THRESHOLD)
 				{

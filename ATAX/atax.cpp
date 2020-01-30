@@ -32,7 +32,7 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
-
+#define VERBOSE_COMPARE_NUM -1
 
 void init_array(DATA_TYPE *x, DATA_TYPE *A)
 {
@@ -57,7 +57,9 @@ void compareResults(DATA_TYPE *z, DATA_TYPE *z_outputFromGpu)
 
 	for (i=0; i<NY; i++)
 	{
-        if(count%250==0) std::cout << "CCHECK [" << count << "] " << z[i] << "/" << z_outputFromGpu[i] << std::endl;
+        if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+			std::cout << "CCHECK [" << count << "] " << z[i] << "/" << z_outputFromGpu[i] << std::endl;
+
         count++;
 		if (percentDiff(z[i], z_outputFromGpu[i]) > PERCENT_DIFF_ERROR_THRESHOLD)
 		{

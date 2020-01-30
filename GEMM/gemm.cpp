@@ -35,6 +35,8 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
+
 void gemm(DATA_TYPE *A, DATA_TYPE *B, DATA_TYPE *C)
 {
 	int i,j,k;
@@ -95,9 +97,10 @@ void compareResults(DATA_TYPE* C, DATA_TYPE* C_outputFromGpu)
 	{
 		for (j=0; j < NJ; j++) 
 		{
-            if(count%250==0) std::cout << "CCHECK [" << count << "] " << C[i*NJ + j] << "/" << C_outputFromGpu[i*NJ + j] << std::endl;
-            count++;
-
+            if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count << "] " << C[i*NJ + j] << "/" << C_outputFromGpu[i*NJ + j] << std::endl;
+            
+			count++;
 			if (percentDiff(C[i*NJ + j], C_outputFromGpu[i*NJ + j]) > PERCENT_DIFF_ERROR_THRESHOLD) 
 			{
 				fail++;

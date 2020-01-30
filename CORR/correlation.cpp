@@ -1,5 +1,5 @@
 /**
- * corrleation.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
+ * correlation.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
  * Vulkan version
  */
 
@@ -44,6 +44,7 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
 
 void init_arrays(DATA_TYPE* data)
 {
@@ -133,14 +134,14 @@ void compareResults(DATA_TYPE* symmat, DATA_TYPE* symmat_outputFromGpu)
 	{
 		for (j=1; j < (N+1); j++)
 		{
-            if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  symmat[i*(N+1) + j] << "/" << symmat_outputFromGpu[i*(N+1) + j] << std::endl;
-            count++;
-
+            if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count << "] " <<  symmat[i*(N+1) + j] << "/" << symmat_outputFromGpu[i*(N+1) + j] << std::endl;
+           
+		    count++;
 			if (percentDiff(symmat[i*(N+1) + j], symmat_outputFromGpu[i*(N+1) + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
 			{
 				fail++;
 				printf("i: %d j: %d\n1: %f 2: %f\n", i, j, symmat[i*N + j], symmat_outputFromGpu[i*N + j]);
-		
 			}
 		}
 	}

@@ -29,6 +29,8 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
+
 void init_arrays(DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* ey, DATA_TYPE* hz)
 {
 	int i, j;
@@ -98,9 +100,10 @@ void compareResults(DATA_TYPE* hz1, DATA_TYPE* hz2)
 	{
 		for (j=0; j < NY; j++) 
 		{
-            //if(count%250==0) std::cout << "CCHECK [" << count << "] " << hz1[i*NY + j] << "/" << hz2[i*NY + j] << std::endl;
-            count++;
-
+            if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count << "] " << hz1[i*NY + j] << "/" << hz2[i*NY + j] << std::endl;
+            
+			count++;
 			if (percentDiff(hz1[i*NY + j], hz2[i*NY + j]) > PERCENT_DIFF_ERROR_THRESHOLD) 
 			{
 				std::cout << "Discrepancy in " << hz1[i*NY+j] <<  "/" << hz2[i*NY+j] << std::endl;

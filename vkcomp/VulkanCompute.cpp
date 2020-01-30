@@ -443,7 +443,7 @@ int32_t VulkanCompute::loadAndCompileShader(const std::string s, const std::stri
 	return loadAndCompileShader(CrossFileAdapter(filename.c_str()),shader_id);
 }
 
-uint32_t VulkanCompute::getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props)
+int32_t VulkanCompute::getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props)
 {
 	if (mem_props == NULL)
 	{

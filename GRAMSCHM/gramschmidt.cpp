@@ -1,5 +1,5 @@
 /**
- * gramshmidt.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
+ * gramschmidt.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
  * Vulkan version
  */
 
@@ -30,7 +30,7 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
-
+#define VERBOSE_COMPARE_NUM -1
 
 void gramschmidt(DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE* Q)
 {
@@ -91,9 +91,10 @@ void compareResults(DATA_TYPE* A, DATA_TYPE* A_outputFromGpu)
 		for (j=0; j < N; j++) 
 		{
 
-            if(count%250==0) std::cout << "CCHECK [" << count << "] " << A[i*N + j] << "/" << A_outputFromGpu[i*N + j] << std::endl;
-            count++;
-
+            if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count << "] " << A[i*N + j] << "/" << A_outputFromGpu[i*N + j] << std::endl;
+           
+		    count++;
 			if (percentDiff(A[i*N + j], A_outputFromGpu[i*N + j]) > PERCENT_DIFF_ERROR_THRESHOLD) 
 			{				
 				fail++;
