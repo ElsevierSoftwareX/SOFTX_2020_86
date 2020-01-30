@@ -13,9 +13,57 @@ do
 		pwd
 		if [ "$1" == "clean" ]; then
 			make clean
-		else
+		elif [ "$1" != "test" ]; then
 			make
 		fi
 		cd ..
     fi
+	if [ "$1" == "test" ]; then
+		clear;
+		cd 2DCONV
+		./2DConvolution ;
+		cd ..
+		cd 2MM
+		./2mm ;
+		cd ..
+		cd 3DCONV
+		./3DConvolution ;
+		cd ..
+		cd 3MM
+		./3mm ;
+		cd ..
+		cd ATAX
+		./atax ;
+		cd ..
+		cd BICG
+		./bicg ;
+		cd ..
+		cd CORR
+		./correlation ; 
+		cd ..
+		cd COVAR
+		./covariance ;
+		cd ..
+		cd FDTD-2D
+		./fdtd2d ;
+		cd ..
+		cd GEMM
+		./gemm ;
+		cd ..
+		cd GESUMMV
+		./gesummv ;
+		cd ..
+		cd GRAMSCHM
+		./gramschm ;
+		cd ..
+		cd MVT
+		./mvt ; 
+		cd ..
+		cd SYR2K
+		./syr2k ;
+		cd ..
+		cd SYRK 
+		./syrk ;
+		cd ..
+	fi
 done
