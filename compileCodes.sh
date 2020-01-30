@@ -15,6 +15,7 @@ do
 			make clean
 		else
 			make
+		fi
 		cd ..
     fi
 done
