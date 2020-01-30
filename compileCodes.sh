@@ -18,52 +18,75 @@ do
 		fi
 		cd ..
     fi
-	if [ "$1" == "test" ]; then
-		clear;
-		cd 2DCONV
-		./2DConvolution ;
-		cd ..
-		cd 2MM
-		./2mm ;
-		cd ..
-		cd 3DCONV
-		./3DConvolution ;
-		cd ..
-		cd 3MM
-		./3mm ;
-		cd ..
-		cd ATAX
-		./atax ;
-		cd ..
-		cd BICG
-		./bicg ;
-		cd ..
-		cd CORR
-		./correlation ; 
-		cd ..
-		cd COVAR
-		./covariance ;
-		cd ..
-		cd FDTD-2D
-		./fdtd2d ;
-		cd ..
-		cd GEMM
-		./gemm ;
-		cd ..
-		cd GESUMMV
-		./gesummv ;
-		cd ..
-		cd GRAMSCHM
-		./gramschm ;
-		cd ..
-		cd MVT
-		./mvt ; 
-		cd ..
-		cd SYR2K
-		./syr2k ;
-		cd ..
-		cd SYRK 
-		./syrk ;
-		cd ..
-	fi
 done
+
+if [ "$1" == "clean" ]; then
+	echo "Cleaning vkcomp obj files..."
+	cd ./vkcomp
+	rm -f *.o
+	cd ..
+fi
+
+if [ "$1" == "test" ]; then
+	clear;
+	cd 2DCONV
+	echo "Performing 2DConvolution"
+	./2DConvolution ;
+	cd ..
+	cd 2MM
+	echo "Performing 2MM. Warning: CPU implementation will take a while..."
+	./2mm ;
+	cd ..
+	cd 3DCONV
+	echo "Performing 3DConvolution"
+	./3DConvolution ;
+	cd ..
+	cd 3MM
+	echo "Performing 3MM" 
+	./3mm ;
+	cd ..
+	cd ATAX
+	echo "Performing ATAX"
+	./atax ;
+	cd ..
+	cd BICG
+	echo "Performing BICG"
+	./bicg ;
+	cd ..
+	cd CORR
+	echo "Performing CORR"
+	./correlation ; 
+	cd ..
+	cd COVAR
+	echo "Performing covariance"
+	./covariance ;
+	cd ..
+	cd FDTD-2D
+	echo "Performing FDTD-2D"
+	./fdtd2d ;
+	cd ..
+	cd GEMM
+	echo "Performing GEMM"
+	./gemm ;
+	cd ..
+	cd GESUMMV
+	echo "Performing GESUMMV"
+	./gesummv ;
+	cd ..
+	cd GRAMSCHM
+	echo "Performing GRAMSCHM"
+	./gramschmidt ;
+	cd ..
+	cd MVT
+	echo "Performing MVT"
+	./mvt ; 
+	cd ..
+	cd SYR2K
+	echo "Performing SYR2K"
+	./syr2k ;
+	cd ..
+	cd SYRK 
+	echo "Performing SYRK"
+	./syrk ;
+	cd ..
+fi
