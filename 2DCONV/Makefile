@@ -19,21 +19,21 @@ OBJECTS = $(patsubst $(VKCOMPDIR)/%.cpp, %.o, $(SRC_FILES))
 HEADERS = $(wildcard *.h)
 
 %.o: $(VKCOMPDIR)/%.cpp #$(HEADERS)
-	$(CC) $(CFLAGS) $(CDEFINES) -c $< -I$(VKHEADERSDIR) -o $@
+	$(CC) $(CFLAGS) $(CDEFINES) -c $< -I$(VKHEADERSDIR) -o $(VKCOMPDIR)/$@
 
 all: default
 default: $(TARGET)
 
-$(info $$SRC_FILES is [${SRC_FILES}])
-$(info $$OBJECTS is [${OBJECTS}])
+#$(info $$SRC_FILES is [${SRC_FILES}])
+#$(info $$OBJECTS is [${OBJECTS}])
 
 #.PRECIOUS: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(TARGET).o
-	$(CC) -o $@ $(OBJECTS) $(TARGET).o $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+	$(CC) -o $@ $(OBJECTS) $(TARGET).o $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L$(VKCOMPDIR)
 
 $(TARGET).o: $(TARGET).cpp
-	$(CC) $(CFLAGS) -o $@ -c $(TARGET).cpp  $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L.
+	$(CC) $(CFLAGS) -o $@ -c $(TARGET).cpp  $(CDEFINES) $(INCLUDE) -Wall $(LIBS) -L$(VKCOMPDIR)
 
 
 clean:
