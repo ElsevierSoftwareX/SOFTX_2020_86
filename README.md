@@ -17,6 +17,6 @@ FDTD-2D -> ALL DONE. TEST: 2 errors
 GEMM -> ALL DONE.  
 GESUMMV -> ALL DONE.   
 GRAMSCHM -> ALL DONE. TEST: no errors but weird numbers        
-MVT -> ALL DONE, In testing    
-SYR2K all todo  
+MVT -> ALL DONE.    
+SYR2K -> ALL DONE. In Testing. Possible bug from original version.   
 SYRK all todo  
