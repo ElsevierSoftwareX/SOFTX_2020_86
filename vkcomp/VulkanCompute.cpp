@@ -196,14 +196,14 @@ void VulkanCompute::createContext()
 	std::vector<VkQueueFamilyProperties> familyProperties(family_count);
 	vkGetPhysicalDeviceQueueFamilyProperties(phys_device, &family_count, familyProperties.data());
 
-	uint32_t queue_index_supporting_compute = -1;
-	uint32_t queue_index_supporting_transfer = -1;
-	uint32_t supports_all_families = -1;
+	int32_t queue_index_supporting_compute = -1;
+	int32_t queue_index_supporting_transfer = -1;
+	int32_t supports_all_families = -1;
 
 	//the idea here is simple. But I need to confirm this is the best course of action.
 	//get the "biggest" family queue. Create as many queue as you can within the same family.
 
-	for (uint32_t i = 0; i < family_count; i++)
+	for (int32_t i = 0; i < family_count; i++)
 	{
 		if (i == 2)
 			DBG_PRINT("vulkan.gpuinfo is a liar")

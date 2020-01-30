@@ -64,7 +64,8 @@ void compareResults(DATA_TYPE* s, DATA_TYPE* s_outputFromGpu, DATA_TYPE* q, DATA
 	// Compare s with s_cuda
 	for (i=0; i<NX; i++)
 	{
-        if(count%250==0) std::cout << "CCHECK [" << count << "] " <<  q[i] << "/" << q_outputFromGpu[i] << std::endl;
+        if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0)) 
+			std::cout << "CCHECK [" << count << "] " <<  q[i] << "/" << q_outputFromGpu[i] << std::endl;
         count++;
 
 		if (percentDiff(q[i], q_outputFromGpu[i]) > PERCENT_DIFF_ERROR_THRESHOLD)
