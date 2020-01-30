@@ -14,11 +14,11 @@ INCLUDE = -I$(VKHEADERSDIR) -I$(VKCOMPDIR)
 #HEADERS = $(wildcard *.h)
 
 SRC_FILES = $(wildcard $(VKCOMPDIR)/*.cpp)
-OBJECTS = $(patsubst $(VKCOMPDIR)/%.cpp, %.o, $(SRC_FILES))
+OBJECTS = $(patsubst $(VKCOMPDIR)/%.cpp, $(VKCOMPDIR)/%.o, $(SRC_FILES))
 HEADERS = $(wildcard *.h)
 
 %.o: $(VKCOMPDIR)/%.cpp #$(HEADERS)
-	$(CC) $(CFLAGS) $(CDEFINES) -c $< -I$(VKHEADERSDIR) -o $(VKCOMPDIR)/$@
+	$(CC) $(CFLAGS) $(CDEFINES) -c $< -I$(VKHEADERSDIR) -o $@
 
 all: default
 default: $(TARGET)
