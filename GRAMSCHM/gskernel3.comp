@@ -1,0 +1,62 @@
+#version 450
+
+/*
+TODO: would be MUCH more elegant to move this in a shared header file
+As it stands, we have two sets of defines: one for host, one for device. People can
+get confused.
+*/
+#define DATA_TYPE float
+#define M 2048
+#define N 2048
+
+layout(local_size_x_id = 1) in;                
+layout(local_size_y_id = 2) in;
+layout(local_size_z_id = 3) in;
+
+layout(push_constant) uniform PushConsts {
+    int k;
+} pushConsts;
+
+layout(std430) buffer;
+
+layout(set = 0, binding = 4) buffer d_a
+{
+    DATA_TYPE elements[];
+}
+a;
+
+layout(set = 0, binding = 5) buffer d_r
+{
+    DATA_TYPE elements[];
+}
+r;
+
+layout(set = 0, binding = 6) buffer d_q
+{
+    DATA_TYPE elements[];
+}
+q;
+
+void main()
+{
+
+    const uint j = gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x;
+
+    int k = pushConsts.k;
+
+	if ((j > k) && (j < N))
+	{
+		r.elements[k*N + j] = 0.0;
+
+		int i;
+		for (i = 0; i < M; i++)
+		{
+			r.elements[k*N + j] += q.elements[i*N + k] * a.elements[i*N + j];
+		}
+		
+		for (i = 0; i < M; i++)
+		{
+			a.elements[i*N + j] -= q.elements[i*N + k] * r.elements[k*N + j];
+		}
+	}
+}

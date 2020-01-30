@@ -15,8 +15,8 @@ CORR -> ALL DONE.
 COVAR -> ALL DONE.     
 FDTD-2D -> ALL DONE. TEST: 2 errors      
 GEMM -> ALL DONE.  
-GESUMMV -> ALL DONE. In testing  
-GRAMSCHM all todo  
+GESUMMV -> ALL DONE.   
+GRAMSCHM -> ALL DONE. In Testing      
 MVT all todo  
 SYR2K all todo  
 SYRK all todo  
