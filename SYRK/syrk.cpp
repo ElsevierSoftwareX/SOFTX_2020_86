@@ -215,9 +215,9 @@ int main()
 	C_outputFromGpu = (DATA_TYPE*)malloc(N*M*sizeof(DATA_TYPE));
 
 	init_arrays(A, C);
-	
-    VulkanCompute vk;
-	GPU_argv_init(&vk);	
+
+    	VulkanCompute vk;
+	GPU_argv_init(&vk);
 
 	syrkVulkan(&vk, A, C, C_outputFromGpu);
 
@@ -231,7 +231,7 @@ int main()
 	free(A);
 	free(C);
 	free(C_outputFromGpu);
-    vk.freResources();
+    	vk.freeResources();
 
 	return EXIT_SUCCESS;
 }
