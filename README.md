@@ -18,5 +18,5 @@ GEMM -> ALL DONE.
 GESUMMV -> ALL DONE.   
 GRAMSCHM -> ALL DONE. TEST: no errors but weird numbers        
 MVT -> ALL DONE.    
-SYR2K -> ALL DONE. In Testing. Possible bug from original version.   
-SYRK all todo  
+SYR2K -> ALL DONE. Possible bug from original version.       
+SYRK -> ALL DONE. Possible bug from original version.   
