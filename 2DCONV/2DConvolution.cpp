@@ -30,6 +30,8 @@
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
 
+#define VERBOSE_COMPARE_NUM -1
+
 void conv2D(DATA_TYPE* A, DATA_TYPE* B)
 {
 	int i, j;
@@ -71,12 +73,16 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 {
 	int i, j, fail;
 	fail = 0;
+	int count = 0;
+
 	// Compare a and b
 	for (i=1; i < (NI-1); i++)
 	{
 		for (j=1; j < (NJ-1); j++)
 		{
-			//std::cout << B[i*NJ+j] << " " << B_outputFromGpu[i*NJ+j] << std::endl;
+			if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count << "] " << B[i*NJ+j] << "/" << B_outputFromGpu[i*NJ+j] << std::endl;
+			count++;
 			if (percentDiff(B[i*NJ + j], B_outputFromGpu[i*NJ + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
 			{
 				fail++;
@@ -95,7 +101,7 @@ void GPU_argv_init(VulkanCompute *vk)
 }
 
 
-void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu)
+void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu)
 {
 	double t_start, t_end;
 
@@ -118,7 +124,6 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 
 	memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
 
-	//cudaMemcpy(A_gpu, A, sizeof(DATA_TYPE) * NI * NJ, cudaMemcpyHostToDevice);
 	vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
 	vk->finalizeCommandList();
@@ -126,8 +131,7 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 	vk->deviceSynch();
 
 	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
-	*/
+	dim3 grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );*/
 	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
 
@@ -163,9 +167,6 @@ void convolution2DVk(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu
 	vk->deviceSynch();
 
 	memcpy(B_outputFromGpu,B_gpu,sizeof(DATA_TYPE)*NI*NJ);
-
-	/*cudaFree(A_gpu);
-	cudaFree(B_gpu);*/
 }
 
 
@@ -181,7 +182,7 @@ int main(int argc, char *argv[])
 	VulkanCompute vk;
 	GPU_argv_init(&vk);
 
-	convolution2DVk(&vk, A, B_outputFromGpu);
+	convolution2DVulkan(&vk, A, B_outputFromGpu);
 
 	t_start = rtclock();
 	conv2D(A, B);

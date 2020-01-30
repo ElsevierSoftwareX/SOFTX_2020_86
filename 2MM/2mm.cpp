@@ -17,8 +17,6 @@
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.05
 
-#define GPU_DEVICE 0
-
 /* Problem size. */
 # define NI 2048
 # define NJ 2048
@@ -31,6 +29,8 @@
 
 /* Can switch DATA_TYPE between float and double */
 typedef float DATA_TYPE;
+
+#define VERBOSE_COMPARE_NUM -1
 
 void init_array(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D)
 {
@@ -80,7 +80,9 @@ void compareResults(DATA_TYPE *E, DATA_TYPE *E_outputFromGpu)
 	{
 		for (j=0; j < NI; j++)
 		{
-			if(count%200==0) std::cout << "CCHECK [" << count  <<  "] " << E[i*NI+j] << "/" << E_outputFromGpu[i*NI+j] << std::endl;
+			if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0))
+				std::cout << "CCHECK [" << count  <<  "] " << E[i*NI+j] << "/" << E_outputFromGpu[i*NI+j] << std::endl;
+
 			count++;
 			if (percentDiff(E[i*NI + j], E_outputFromGpu[i*NI + j]) > PERCENT_DIFF_ERROR_THRESHOLD)
 			{
@@ -106,7 +108,7 @@ void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* 
 	
   	for (i = 0; i < NI; i++)
 	{
-		if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
+		//if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
 
 		for (j = 0; j < NJ; j++)
 		{
@@ -121,7 +123,7 @@ void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* 
 	for (i = 0; i < NI; i++)
 	{
 
-		if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
+		//if(i%100==0) std::cout << "iteration " << i << "/" << (NI-1) << std::endl;
 
 		for (j = 0; j < NL; j++)
 		{
