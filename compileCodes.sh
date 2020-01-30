@@ -12,10 +12,6 @@ do
 		cd $currDir
 		pwd
 
-		if [$currDir == "vkcomp"]
-			continue
-		fi
-
 		if [ "$1" == "clean" ]; then
 			make clean
 		elif [ "$1" != "test" ]; then
