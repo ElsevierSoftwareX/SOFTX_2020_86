@@ -55,7 +55,7 @@ struct ProducedVKPipeline {
 class VulkanCompute : public ComputeInterface, public CommandListBased
 {
 public:
-	VulkanCompute(std::string glslc_path="", uint32_t preferred_vendor_=DEV_SELECT_SECOND, uint64_t device_memory_requirement = GIGA);
+	VulkanCompute(std::string glslc_path="", uint32_t preferred_vendor_=NO_VENDOR_PREFERRED, uint64_t device_memory_requirement = GIGA);
 	void createContext();
 	void errorCheck();
 	int32_t loadAndCompileShader(const std::string, const std::string);
