@@ -63,7 +63,7 @@ float getElapsedTime(const timespec *const tstart, const timespec *const tend)
 
 int setFIFO99andCore(const int coreID){
 
-	struct sched_param param;
+	/*struct sched_param param;
 	param.sched_priority = 99;
 
 	int res = sched_setscheduler(getpid(), SCHED_FIFO, 
@@ -75,15 +75,15 @@ int setFIFO99andCore(const int coreID){
 	}
 
 	cpu_set_t my_set;        /* Define your cpu_set bit mask. */
-	CPU_ZERO(&my_set);       /* Initialize it all to 0, i.e. no CPUs selected. */
-	CPU_SET(coreID, &my_set);     /* set the bit that represents the core passed as argument. */
-	res = sched_setaffinity(0, sizeof(cpu_set_t), &my_set); /* Set affinity of tihs process to */
+	/*CPU_ZERO(&my_set);       /* Initialize it all to 0, i.e. no CPUs selected. */
+	/*CPU_SET(coreID, &my_set);     /* set the bit that represents the core passed as argument. */
+	/*res = sched_setaffinity(0, sizeof(cpu_set_t), &my_set); /* Set affinity of tihs process to */
                                                   			/* the defined mask*/
 	
-	if(res!=0) {
+	/*if(res!=0) {
 		printf("sched_setaffinity returned %d. Are you Root or did you set a non-existing core?\n", res);
 		return res;
 	}
 
-	return res;
+	return res;*/return 0;
 }

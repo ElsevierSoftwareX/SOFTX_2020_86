@@ -68,7 +68,7 @@ void VulkanCompute::destroyDebug()
 
 #endif
 
-VulkanCompute::VulkanCompute(std::string path_to_glslc, uint8_t preferred_vendor_, uint64_t device_mem_req) : CommandListBased()
+VulkanCompute::VulkanCompute(std::string path_to_glslc, uint32_t preferred_vendor_, uint64_t device_mem_req) : CommandListBased()
 {
 	//if (path_to_glslc.length() > 1)
 		glslc_folder = path_to_glslc;
@@ -166,24 +166,59 @@ void VulkanCompute::createContext()
 	VK_CRITICAL_CALL(vkEnumeratePhysicalDevices(instance, &gpus, gpu_list.data());)
 	errorCheck();
 
-	if (gpus == 1 || preferred_vendor == NO_VENDOR_PREFERRED) {
+	if(gpus>1 && preferred_vendor == NO_VENDOR_PREFERRED){
+		std::cout << "More than one Vulkan capable device is detected: " << std::endl;
+		for (uint32_t i = 0; i < gpu_list.size(); i++){
+			vkGetPhysicalDeviceProperties(gpu_list[i], &phys_device_props);
+			std::cout << "Device " << i << ": " << phys_device_props.deviceName << " - Vendor ID " << phys_device_props.vendorID << std::endl;
+		}
+	}
+
+	int32_t override_selection = -1;
+	if(	preferred_vendor == DEV_SELECT_FIRST || 
+		preferred_vendor == DEV_SELECT_SECOND ||
+		preferred_vendor == DEV_SELECT_THIRD ||
+		preferred_vendor == DEV_SELECT_FOURTH ) 
+		override_selection = preferred_vendor-1;
+
+	if(override_selection!=-1){
+		if(gpu_list.size()<(override_selection+1)){
+			FATAL_EXIT("Failed to override device selection: you don't have THAT many GPUs")
+		}
+		else {
+			vkGetPhysicalDeviceProperties(gpu_list[override_selection], &phys_device_props);
+			phys_device = gpu_list.at(override_selection);
+		}
+	}
+
+	if ((override_selection==-1)&&(gpus == 1 || preferred_vendor == NO_VENDOR_PREFERRED)) {
 		phys_device = gpu_list.at(0);
 		vkGetPhysicalDeviceProperties(phys_device, &phys_device_props);
 	}
-	else
+	else if (override_selection==-1)
 	{
+		bool found_pref = false;
 		for (uint32_t i = 0; i < gpu_list.size(); i++)
 		{
 			vkGetPhysicalDeviceProperties(gpu_list[i], &phys_device_props);
 
+			//std::cout << "COMPARE " << preferred_vendor << " with " << phys_device_props.vendorID << std::endl; 
+
 			if (phys_device_props.vendorID == preferred_vendor)
 			{
+				//DBG_PRINT("I Found your preferred vendor!")
+				found_pref = true;
 				phys_device = gpu_list.at(i);
 				break;
 			}
+		}
+
+		if(!found_pref){
 			DBG_PRINT("Your preferred GPU vendor was not found. You'll get the default one.")
 			phys_device = gpu_list.at(0);
+			vkGetPhysicalDeviceProperties(gpu_list.at(0), &phys_device_props);
 		}
+
 	}
 
 	//family queue valzer starts here.

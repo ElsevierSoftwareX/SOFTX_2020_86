@@ -1,8 +1,15 @@
-LIBS = -lvulkan
 CC = g++
-CFLAGS = -g -Wall --std=c++11
+CFLAGS = -g -Wall --std=gnu++11
 VKCOMPDIR = ../vkcomp
+ifeq ($(OS),Windows_NT)
+VKHEADERSDIR = $(VULKAN_SDK)/Include/vulkan
+LIBS = -L$(VULKAN_SDK)\Bin -lVulkan-1
+$(info vksdk is $(VKHEADERSDIR))
+else 
 VKHEADERSDIR = /usr/include/vulkan
+LIBS = -lvulkan
+endif
+
 INCLUDE = -I$(VKHEADERSDIR) -I$(VKCOMPDIR)
 
 .PHONY: default all clean

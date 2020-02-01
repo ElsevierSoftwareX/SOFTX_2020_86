@@ -3,7 +3,7 @@
 
 //OS/platform indipendent headers
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
@@ -12,14 +12,15 @@
 #include <iostream>
 #include <time.h>
 
-#ifdef _WIN32
+#if defined(_WIN32)
+	#include <direct.h>
 	#include <Windows.h>
 	#include <SDKDDKVer.h>
 	#include <tchar.h>
 #endif
 
-#ifdef _WIN32
-#include <direct.h>
+#if defined(_WIN32) 
+#include <dirent.h>
 #define GetCurrentDir _getcwd
 #define FILE_SEPARATOR '\\'
 #define popen _popen

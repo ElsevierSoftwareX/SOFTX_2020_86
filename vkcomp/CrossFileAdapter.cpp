@@ -40,7 +40,15 @@ std::string CrossFileAdapter::getAbsolutePath()
 
 void CrossFileAdapter::setAbsolutePath(std::string path)
 {
-	abs_path = path;
+	#ifdef __CYGWIN__
+		int subtract = std::string("/cygdrive/").length();
+		path = path.substr(subtract);
+		path.insert(1,":");
+		std::cout << "ELABORATED " << path << std::endl;
+		abs_path = path;
+	#elif 
+		abs_path = path;
+	#endif
 }
 
 
