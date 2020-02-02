@@ -33,11 +33,13 @@ For **building**
     * To build all the benchmarks type: *./compileScript*
 * In Windows:
     * Open a powershell terminal and type *compileScript.bat*  
+    
 For **running** all the benchmarks (after build)
 * In Linux:
     * Open a terminal and type *./compileScript test*
 * In Windows:
     * Open a powershell terminal and type *compileScript.bat test*  
+
 For **cleaning** (obj files and generated binary spv related to all the benchmarks)
 * In Linux:
     * Open a terminal and type *./compileScript clean*
