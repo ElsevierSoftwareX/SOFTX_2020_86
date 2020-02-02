@@ -13,12 +13,14 @@
 #include "../vkcomp/stdafx.h"
 #include "../polybenchUtilFuncts.h"
 
+/*
+Data types, sizes and other constants are defined in the following header file.
+Such defines are common for host and device code.
+*/
+#include "HDcommon.h"
+
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 1.05
-
-/* Problem size */
-#define M 2048
-#define N 2048
 
 /* Thread block dimensions for kernel 1*/
 #define DIM_THREAD_BLOCK_KERNEL_1_X 256
@@ -37,12 +39,6 @@
 #define DIM_THREAD_BLOCK_KERNEL_4_Y 1
 
 #define sqrt_of_array_cell(x,j) sqrt(x[j])
-
-#define FLOAT_N 3214212.01f
-#define EPS 0.005f
-
-/* Can switch DATA_TYPE between float and double */
-typedef float DATA_TYPE;
 
 #define VERBOSE_COMPARE_NUM -1
 

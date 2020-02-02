@@ -6,7 +6,7 @@
 
 std::string exec(const char* cmd) {
 	char buffer[128];
-	std::string result = "";
+	std::string result = std::string(cmd);
 	std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
 	if (!pipe) throw std::runtime_error("popen() failed!");
 	while (!feof(pipe.get())) {
@@ -17,7 +17,7 @@ std::string exec(const char* cmd) {
 }
 std::string exec(std::string cmd)
 {
-	return exec(cmd.c_str());
+	return exec(std::string(cmd+" 2>&1").c_str());
 }
 
 #ifdef _WIN32
@@ -61,6 +61,7 @@ float getElapsedTime(const timespec *const tstart, const timespec *const tend)
 
 }
 
+//TODO: do we still need this?
 int setFIFO99andCore(const int coreID){
 
 	/*struct sched_param param;
@@ -74,16 +75,17 @@ int setFIFO99andCore(const int coreID){
 		return res;
 	}
 
-	cpu_set_t my_set;        /* Define your cpu_set bit mask. */
-	/*CPU_ZERO(&my_set);       /* Initialize it all to 0, i.e. no CPUs selected. */
-	/*CPU_SET(coreID, &my_set);     /* set the bit that represents the core passed as argument. */
-	/*res = sched_setaffinity(0, sizeof(cpu_set_t), &my_set); /* Set affinity of tihs process to */
-                                                  			/* the defined mask*/
+	cpu_set_t my_set;        // Define your cpu_set bit mask. 
+	CPU_ZERO(&my_set);       // Initialize it all to 0, i.e. no CPUs selected. 
+	CPU_SET(coreID, &my_set);     // set the bit that represents the core passed as argument. 
+	res = sched_setaffinity(0, sizeof(cpu_set_t), &my_set); // Set affinity of this process to 
+                                                  			// the defined mask
 	
-	/*if(res!=0) {
+	if(res!=0) {
 		printf("sched_setaffinity returned %d. Are you Root or did you set a non-existing core?\n", res);
 		return res;
 	}
 
-	return res;*/return 0;
+	return res;*/
+	return 0;
 }

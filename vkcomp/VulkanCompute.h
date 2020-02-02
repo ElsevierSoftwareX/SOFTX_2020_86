@@ -17,6 +17,13 @@
 
 #define GIGA 1024*1024*1024
 
+/*checks if an updated SPV file is present for a given glsl src
+issue: changes in header files are not tracked!*/
+#define GLSL_TO_SPV_UPDATE_COMPILATION_CHECK
+
+//Will remove generated spv binary after a successfull glsl->spv compilation
+//#define REMOVE_SPV_AFTER_COMPILATION
+
 //#define PRE_ALLOCATED_BUFFER_FOR_PUSH_CONSTANTS_SIZE 100*1024
 
 #define VK_WFI \
@@ -69,7 +76,7 @@ public:
 	void startCreateCommandList();
 	void finalizeCommandList();
 	void submitWork();
-
+	
 	void synchBuffer(void **data, const uint8_t direction);
 	void setArg(void**, const std::string shader_id, const uint32_t);
 	void setSymbol(const uint32_t location, uint32_t byte_width = 4);
@@ -77,7 +84,7 @@ public:
 	void copySymbolInt(int value, const  std::string shader, const uint32_t location);
 	void copySymbolDouble(double value, const  std::string shader, const uint32_t location);
 	void copySymbolFloat(float value, const std::string shader, const uint32_t location);
-	void setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads = NULL);
+	void setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads = ComputeWorkDistribution_t{0,0,0});
 	void launchComputation(const std::string computation_identifier);
 	inline void deviceSynch();
 	void freeResource(void* resource);
@@ -142,7 +149,7 @@ private:
 	int32_t getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props);
 	const char *fromVKDeviceTypeToString(const VkPhysicalDeviceType dev_type);
 	template <typename T> void setUpPushConstant(T value, const uint32_t location);
-
+	bool checkGLSLSPVtimestampDifference(const std::string &glsl_src, const std::string &spv_bin);
 	
 };
 #endif

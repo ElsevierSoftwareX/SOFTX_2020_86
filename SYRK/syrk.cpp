@@ -14,23 +14,18 @@
 #include "../vkcomp/stdafx.h"
 #include "../polybenchUtilFuncts.h"
 
+/*
+Data types, sizes and other constants are defined in the following header file.
+Such defines are common for host and device code.
+*/
+#include "HDcommon.h"
+
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.05
-
-/* Problem size */
-#define N 1024
-#define M 1024
 
 /* Thread block dimensions */
 #define DIM_THREAD_BLOCK_X 32
 #define DIM_THREAD_BLOCK_Y 8
-
-/* Declared constant values for alpha and beta (same as values in PolyBench 2.0) */
-#define alpha 12435
-#define beta 4546
-
-/* Can switch DATA_TYPE between float and double */
-typedef float DATA_TYPE;
 
 #define VERBOSE_COMPARE_NUM -1
 

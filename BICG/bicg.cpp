@@ -3,7 +3,6 @@
  * Vulkan version
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -14,12 +13,14 @@
 #include "../vkcomp/stdafx.h"
 #include "../polybenchUtilFuncts.h"
 
+/*
+Data types, sizes and other constants are defined in the following header file.
+Such defines are common for host and device code.
+*/
+#include "HDcommon.h"
+
 //Error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.5
-
-/* Problem size. */
-#define NX 4096
-#define NY 4096
 
 /* Thread block dimensions */
 #define DIM_THREAD_BLOCK_X 256
@@ -28,9 +29,6 @@
 #ifndef M_PI
 #define M_PI 3.14159
 #endif
-
-/* Can switch DATA_TYPE between float and double */
-typedef float DATA_TYPE;
 
 #define VERBOSE_COMPARE_NUM -1
 
@@ -61,7 +59,7 @@ void compareResults(DATA_TYPE* s, DATA_TYPE* s_outputFromGpu, DATA_TYPE* q, DATA
 	fail = 0;
     int count = 0;
 
-	// Compare s with s_cuda
+	// Compare s with s_vulkan
 	for (i=0; i<NX; i++)
 	{
         if((VERBOSE_COMPARE_NUM>=0) && (count%VERBOSE_COMPARE_NUM==0)) 

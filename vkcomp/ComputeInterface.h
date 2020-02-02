@@ -169,7 +169,7 @@ Also, new generation APIs pose restrictions on when and how call some of the mem
 		\param blocks: the 3D block configuration. In terms of number of work groups per each dimension.
 		\param blocks: the 3D threads configurations in terms of threads (or workitems) per block
 		*/
-		virtual void setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads=NULL)=0;
+		virtual void setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads=ComputeWorkDistribution_t{0,0,0})=0;
 
 		/*! \fn void launchComputation(const std::string program_id)
 		\brief launch asynchronously a GPU program identified with program_id. It does that with a previously set launch configuration

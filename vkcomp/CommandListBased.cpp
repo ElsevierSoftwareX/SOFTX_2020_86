@@ -81,7 +81,7 @@ CommandListBased::~CommandListBased()
 {
 }
 
-inline bool CommandListBased::verifyCmdListState(const uint8_t expectation)
+bool CommandListBased::verifyCmdListState(const uint8_t expectation)
 {
 	if (expectation != cmd_list_creation_state)
 		return false;
@@ -89,7 +89,7 @@ inline bool CommandListBased::verifyCmdListState(const uint8_t expectation)
 	return true;
 }
 
-inline bool CommandListBased::verifyPipelineCreationState(const uint8_t expectation)
+bool CommandListBased::verifyPipelineCreationState(const uint8_t expectation)
 {
 	if (expectation != pipeline_creation_state)
 		return false;

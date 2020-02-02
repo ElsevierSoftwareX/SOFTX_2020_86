@@ -38,7 +38,7 @@ public:
 	(a block identified by the startCreatePipeline and finalizePipeline function calls) the user can define input output layouts, program and its launch configuration.
 	This method has to be called by overriding methods in child classes, as it evaluates illegal operations such as nested pipeline creation or attempting to create a command
 	list before finalizing the current pipeline. 
-	The API wrapper implementer should also check if a specific member function calls fits within a pipeleine creation block.
+	The API wrapper implementer should also check if a specific member function calls fits within a pipeline creation block.
 	\param program_id: the string identifier of a previosly loaded and compiled GPU program.
 	*/
 	void startCreatePipeline(std::string shader_id);
@@ -111,14 +111,14 @@ protected:
 	\param expectation: one of CMD_LIST_IS_CREATED, CMD_LIST_IN_CREATION, CMD_LIST_IS_RESET
 	\return a boolean that indicates if the state expectation is met.
 	*/
-	inline bool verifyCmdListState(const uint8_t expectation);
+	bool verifyCmdListState(const uint8_t expectation);
 
 	/*! \fn bool verifyPipelineCreationState(const uint8_t expectation)
 	\brief verifies if a pipeline creation stage is in the expected state
 	\param expectation: one of PIPELINE_IS_RESTING, PIPELINE_IN_CREATION
 	\return a boolean that indicates if the state expectation is met.
 	*/
-	inline bool verifyPipelineCreationState(const uint8_t expectation);
+	bool verifyPipelineCreationState(const uint8_t expectation);
 
 	/*! A comodity data structure that holds a reference to the pointers to update.
 	*/

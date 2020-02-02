@@ -4,7 +4,7 @@ VKCOMPDIR = ../vkcomp
 ifeq ($(OS),Windows_NT)
 VKHEADERSDIR = $(VULKAN_SDK)/Include/vulkan
 LIBS = -L$(VULKAN_SDK)\Bin -lVulkan-1
-$(info vksdk is $(VKHEADERSDIR))
+#$(info vksdk is $(VKHEADERSDIR))
 else 
 VKHEADERSDIR = /usr/include/vulkan
 LIBS = -lvulkan
@@ -43,6 +43,7 @@ $(TARGET).o: $(TARGET).cpp
 
 
 clean:
+	-rm -f *.spv
 	-rm -f *.o
 	-rm -f $(TARGET)
 

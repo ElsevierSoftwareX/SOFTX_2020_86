@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <iostream>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(_WIN32)
 	#include <direct.h>
@@ -25,6 +27,7 @@
 #define FILE_SEPARATOR '\\'
 #define popen _popen
 #define pclose _pclose
+#define stat _stat
 //#define FOPEN fopen_s
 #else
 #include <unistd.h>

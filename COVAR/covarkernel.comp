@@ -1,15 +1,11 @@
 #version 450
 
 /*
-TODO: would be MUCH more elegant to move this in a shared header file
-As it stands, we have two sets of defines: one for host, one for device. People can
-get confused.
+Data types, sizes and other constants are defined in the following header file.
+Warning: if GLSL_TO_SPV_UPDATE_COMPILATION_CHECK in VulkanCompute.h is defined,
+be advised that changes in HDcommon.h will NOT trigger a glsl to spv translation.
 */
-#define DATA_TYPE float
-#define M 2048
-#define N 2048
-#define FLOAT_N 3214212.01
-#define EPS 0.005
+#include "HDcommon.h"
 
 layout(local_size_x_id = 1) in;                
 layout(local_size_y_id = 2) in;
@@ -32,7 +28,7 @@ data;
 void main()
 {
 
-        const int j1 = int(gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x) + 1;
+    const int j1 = int(gl_LocalInvocationID.x + gl_WorkGroupID.x * gl_WorkGroupSize.x) + 1;
 	int i, j2;
 
 	if ((j1 >= 1) && (j1 < (M+1)))

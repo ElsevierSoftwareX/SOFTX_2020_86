@@ -182,7 +182,7 @@ void VulkanCompute::createContext()
 		override_selection = preferred_vendor-1;
 
 	if(override_selection!=-1){
-		if(gpu_list.size()<(override_selection+1)){
+		if((int32_t)gpu_list.size()<(override_selection+1)){
 			FATAL_EXIT("Failed to override device selection: you don't have THAT many GPUs")
 		}
 		else {
@@ -238,7 +238,7 @@ void VulkanCompute::createContext()
 	//the idea here is simple. But I need to confirm this is the best course of action.
 	//get the "biggest" family queue. Create as many queue as you can within the same family.
 
-	for (int32_t i = 0; i < family_count; i++)
+	for (uint32_t i = 0; i < family_count; i++)
 	{
 		if (i == 2)
 			DBG_PRINT("vulkan.gpuinfo is a liar")
@@ -313,7 +313,7 @@ void VulkanCompute::createContext()
 
 	vkGetPhysicalDeviceMemoryProperties(phys_device, &mem_props);
 
-	cmd_pool;
+	//cmd_pool;
 	VkCommandPoolCreateInfo pool_info{};
 	pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	pool_info.queueFamilyIndex = queue_family;
@@ -345,10 +345,11 @@ void VulkanCompute::createContext()
 
 	memAlloc.allocationSize = memReqs.size;
 
-	memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &mem_props);
+	int32_t memtype = getMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &mem_props);
 	
-	if (memAlloc.memoryTypeIndex == -1)
+	if (memtype == -1)
 		FATAL_EXIT("Error in getting device memory type")
+	else memAlloc.memoryTypeIndex = (uint32_t) memtype;		
 
 	VK_CRITICAL_CALL(vkAllocateMemory(device, &memAlloc, NULL, &PSB.memory);)
 	errorCheck();
@@ -359,7 +360,7 @@ void VulkanCompute::createContext()
 	VK_CRITICAL_CALL(vkMapMemory(device, PSB.memory, 0, memAlloc.allocationSize, 0, (void**)&PSB_data);)
 	errorCheck();
 
-	//most redicolous thing ever pt.1
+	//most ridicolous thing ever pt.1
 	PSB.buffer_info.buffer = PSB.buffer;
 	PSB.buffer_info.offset = 0;
 	PSB.buffer_info.range = device_memory_requirements;
@@ -382,13 +383,42 @@ void VulkanCompute::printContextInformation()
 	std::cout << "API Version : " << ((phys_device_props.apiVersion >> 22) & 0x3FF) << "." <<
 									 ((phys_device_props.apiVersion >> 12) & 0x3FF) << "." << 
 									 ((phys_device_props.apiVersion & 0xFFF)) << std::endl;
-	std::cout << "Folder to look for glslValidator " << glslc_folder.c_str() << std::endl;
+	if(glslc_folder.length() <= 1) std::cout << "Will assume VULKAN_SDK folder is set in path" << std::endl;
+	
+}
+
+bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src, const std::string &spv_bin){
+	std::ifstream outfile(spv_bin.c_str());
+
+	if(!outfile.good()) return true;
+
+	struct stat resultGLSL;
+	struct stat resultSPV;
+	if(  (stat(glsl_src.c_str(), &resultGLSL)==0)  &&  (stat(spv_bin.c_str(), &resultSPV)==0) )
+	{
+    	time_t mod_timeGLSL = resultGLSL.st_mtime;
+		time_t mod_timeSPV = resultSPV.st_mtime;
+		if(difftime(mod_timeSPV,mod_timeGLSL)<0){
+			std::cout << "Will produce SPV, glsl src was modified after last SPV compilation" << std::endl;
+			return true;
+		}
+		else{
+			std::cout << "Up to date SPV binary" << std::endl;
+			return false;
+		}
+
+	}else{ //should never happen
+		std::cout << "Unable to query glsl src and/or spv bin last modification date" << std::endl;
+		return true;
+	}
+
 }
 
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id)
 {
 	std::string compilation_output = "";
-	std::string cmd_line = "glslangValidator";
+	//std::string cmd_line = "glslangValidator";
+	std::string cmd_line = "glslc";
 
 #ifdef _WIN32
 	cmd_line += ".exe";
@@ -403,28 +433,37 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 	else index = 0;
 
 	std::string out_name = f.getAbsolutePath().substr(index, f.getAbsolutePath().length()) + ".spv";
-
-	std::cout << cmd_line + " -V " + f.getAbsolutePath() + " -o " + f.getAbsolutePath().substr(0, index) + out_name << std::endl;
-	compilation_output = exec(cmd_line + " -V " + f.getAbsolutePath() + " -o " + f.getAbsolutePath().substr(0, index) + out_name);
-	//compilation_output = exec(cmd_line + " -V " + f.getAbsolutePath() + " -o " + glslc_folder + FILE_SEPARATOR + out_name);
-
-	//std::cout << compilation_output.c_str() << std::endl;
-
-	uint32_t errors = 0;
-
-	if (compilation_output.find("Error") != std::string::npos || compilation_output.find("error") != std::string::npos)
-		errors++;
-
 	std::string out_filename = f.getAbsolutePath().substr(0, index) + out_name;
 
-	//std::cout << "SPIR-V generated in : " << out_filename.c_str() << std::endl;
+#ifdef GLSL_TO_SPV_UPDATE_COMPILATION_CHECK
+	bool outdated_spv = checkGLSLSPVtimestampDifference(f.getAbsolutePath(),out_filename);
+#elif 
+	bool outdated_spv = true;
+#endif
 
-	if (errors > 0) {
-		std::cout << "VK compile error : " << std::endl << compilation_output << std::endl;
-		return -1;
+	if(outdated_spv){
+		//with glslangValidator was:
+		/*std::cout << cmd_line + " -V " + f.getAbsolutePath() + " -o " + f.getAbsolutePath().substr(0, index) + out_name << std::endl;
+		compilation_output = exec(cmd_line + " -V " + f.getAbsolutePath() + " -o " + f.getAbsolutePath().substr(0, index) + out_name);*/
+		//now with glslc:
+		std::cout << cmd_line + " " + f.getAbsolutePath() + " -I . -fshader-stage=compute -o " + f.getAbsolutePath().substr(0, index) + out_name << std::endl;
+		compilation_output = exec(cmd_line + " " + f.getAbsolutePath() + " -I . -fshader-stage=compute -o " + f.getAbsolutePath().substr(0, index) + out_name);
+
+		uint32_t errors = 0;
+
+		if (compilation_output.find("Error") != std::string::npos || compilation_output.find("error") != std::string::npos)
+			errors++;
+
+		//std::cout << "SPIR-V generated in : " << out_filename.c_str() << std::endl;
+
+		if (errors > 0) {
+			std::cout << "VK compile error : " << std::endl << compilation_output << std::endl;
+			remove(out_filename.c_str());
+			return -1;
+		}
+
+		std::cout << "Compilation output : " << std::endl << compilation_output << std::endl;
 	}
-
-	//std::cout << "Compilation output : " << std::endl << compilation_output << std::endl;
 
 	size_t size;
 	FILE *fp = fopen(out_filename.c_str(), "rb");
@@ -444,7 +483,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 	if (retval != 1 || size<0)
 		FATAL_EXIT("Unable to parse specified SPIR-V related file")
 
-		fclose(fp);
+	fclose(fp);
 
 	VkShaderModule shaderModule;
 	VkShaderModuleCreateInfo moduleCreateInfo;
@@ -455,16 +494,20 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 	moduleCreateInfo.flags = 0;
 
 	VK_CRITICAL_CALL(vkCreateShaderModule(device, &moduleCreateInfo, VK_NULL_HANDLE, &shaderModule);)
-		errorCheck();
+	errorCheck();
 
 	delete[] shaderCode;
 
 	program_map.insert(std::pair<std::string, VkShaderModule>(shader_id, shaderModule));
 
-	DBG_PRINT("Shader compiled successfully")
+	DBG_PRINT("SPV binary Shader compiled successfully")
+
+#ifdef REMOVE_SPV_AFTER_COMPILATION
+	if(remove(out_filename.c_str()) != 0)
+    	std::cout <<  "Error deleting file " << out_filename << std::endl;
+#endif
 
 	return (int32_t)program_map.size();
-
 }
 
 int32_t VulkanCompute::loadAndCompileShader(const std::string s, const std::string shader_id)
@@ -485,7 +528,7 @@ int32_t VulkanCompute::getMemoryType(uint32_t typeBits, VkFlags properties, cons
 		FATAL_EXIT("Null physical device mem props instance...")
 	}
 
-	for (uint32_t i = 0; i < 32; i++)
+	for (int32_t i = 0; i < 32; i++)
 	{
 		if ((typeBits & 1) == 1)
 		{
@@ -661,7 +704,7 @@ void VulkanCompute::setArg(void **data, const std::string shader_id, const uint3
 
 void VulkanCompute::setSymbol(const uint32_t location, uint32_t byte_width)
 {
-	if (!verifyPipelineCreationState(PIPELINE_IN_CREATION))
+	if (!CommandListBased::verifyPipelineCreationState(PIPELINE_IN_CREATION))
 		FATAL_EXIT("Setting symbols is illegal outside a pipeline creation block")
 
 	//we have to keep track of pc indices
@@ -836,7 +879,7 @@ void VulkanCompute::submitWork()
 
 void VulkanCompute::synchBuffer(void ** data, const uint8_t direction)
 {
-	if(!verifyCmdListState(CMD_LIST_IN_CREATION))
+	if(!CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 		FATAL_EXIT("Buffer transfer operation not allowed outside a command list creation block")
 
 	intptr_t address = (intptr_t)(*data);
@@ -916,7 +959,7 @@ void VulkanCompute::synchBuffer(void ** data, const uint8_t direction)
 
 inline void VulkanCompute::synchLaunch()
 {
-	if (!verifyCmdListState(CMD_LIST_IN_CREATION))
+	if (!CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 		FATAL_EXIT("Operation not allowed outside a command list creation block")
 
 	DBG_PRINT("You cannot Synch like that. If you want to synch with the host, consider using fences or events")
@@ -927,7 +970,7 @@ template<typename T>
 inline void VulkanCompute::setUpPushConstant(T value, const uint32_t location)
 {
 
-	if(!verifyCmdListState(CMD_LIST_IN_CREATION))
+	if(!CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 		FATAL_EXIT("Symbols cannot be pushed outside a command list creation block")
 
 	pipeline_iter pipiter = pipeline_table.find(currently_selected_pipeline_index);
@@ -967,7 +1010,7 @@ void VulkanCompute::copySymbolFloat(float value, const std::string shader, const
 void VulkanCompute::setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads)
 {
 
-	if(!verifyPipelineCreationState(PIPELINE_IN_CREATION))
+	if(!CommandListBased::verifyPipelineCreationState(PIPELINE_IN_CREATION))
 		FATAL_EXIT("You cannot set the launch configuration outside of a pipeline creation block")
 
 	wip_specs_map.clear();
@@ -1002,7 +1045,7 @@ void VulkanCompute::setLaunchConfiguration(const ComputeWorkDistribution_t block
 
 void VulkanCompute::launchComputation(const std::string computation_identifier)
 {
-	if (!verifyCmdListState(CMD_LIST_IN_CREATION))
+	if (!CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 		FATAL_EXIT("Launch operation not allowed outside a command list creation block")
 
 	pipeline_iter pipiter = pipeline_table.find(currently_selected_pipeline_index);
@@ -1034,7 +1077,7 @@ void VulkanCompute::launchComputation(const std::string computation_identifier)
 
 inline void VulkanCompute::deviceSynch()
 {
-	if (verifyCmdListState(CMD_LIST_IN_CREATION))
+	if (CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 	{
 		DBG_PRINT("Synch instruction ignored. Please move this instruction out of a pipeline/cmd list creation block")
 		return;
