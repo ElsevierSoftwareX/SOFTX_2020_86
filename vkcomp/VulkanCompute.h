@@ -13,8 +13,6 @@
 
 #define VK_CRITICAL_CALL(x) last_operation_error = x
 
-#define NO_VENDOR_PREFERRED 0
-
 #define GIGA 1024*1024*1024
 
 /*checks if an updated SPV file is present for a given glsl src

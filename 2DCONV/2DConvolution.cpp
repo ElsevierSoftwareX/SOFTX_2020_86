@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
 	DATA_TYPE* B_outputFromGpu = (DATA_TYPE*)malloc(NI*NJ*sizeof(DATA_TYPE));
 	init(A);
 
-	VulkanCompute vk;
+	VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	convolution2DVulkan(&vk, A, B_outputFromGpu);

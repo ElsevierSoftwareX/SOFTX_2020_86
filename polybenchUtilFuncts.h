@@ -5,8 +5,77 @@
 #ifndef POLYBENCH_UTIL_FUNCTS_H
 #define POLYBENCH_UTIL_FUNCTS_H
 
+#include <string>
+#include <algorithm>
+#include "vkcomp/ComputeInterface.h"
+#include <iostream>
+
 //define a small float value
 #define SMALL_FLOAT_VAL 0.00000001f
+
+
+bool isNumber(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
+
+int parseDeviceSelectionFromArgs(const int argc, const char *const argv[])
+{
+	if(argc<=1) 
+		return NO_VENDOR_PREFERRED;
+
+	std::string sarg(argv[1]);
+
+	if(sarg.compare("h")==0 ||
+	sarg.compare("H")==0 ||
+	sarg.compare("--help")==0 ||
+	sarg.compare("-help")==0 ||
+	sarg.compare("-h")==0 ){
+		std::cout << "* Usage " << argv[0] << "[device selection]" << std::endl;
+		std::cout << "A GPU Device in a multi GPU system might be selected either  " << std::endl;
+		std::cout << "	- by indicating an integer for the device among [1,2,3,4] to select the first, second, third or fourth available GPU device. Or" << std::endl;
+		std::cout << "	- by indicating a GPU vendor preference among " << std::endl;
+		std::cout << "		NVIDIA" << std::endl;
+		std::cout << "		AMD or RADEON" << std::endl;
+		std::cout << "		QUALCOMM or ADRENO" << std::endl;
+		std::cout << "		POWERVR" << std::endl;
+		std::cout << " " << std::endl;
+		std::cout << "* For changing data sizes and constants: modify the values in the HDcommon.h file in this directory." << std::endl;
+		std::cout << "Do note that changing values in HDcommon.h implies recompiling both host and device code." << std::endl;
+		exit(0);
+	}
+
+	const bool is_num = isNumber(sarg);
+	if(is_num){
+		const int device_num = atoi(argv[1]);
+		switch(device_num){
+			case 0: return NO_VENDOR_PREFERRED;
+			case 1: return DEV_SELECT_FIRST;
+			case 2: return DEV_SELECT_SECOND;
+			case 3: return DEV_SELECT_THIRD;
+			case 4: return DEV_SELECT_FOURTH;
+			default:
+				std::cout << "Device selection beyond the fourth device is currently unsupported. Fallback to 'no preference'" << std::endl;
+				return NO_VENDOR_PREFERRED; 
+		}
+	} else {
+		std::transform(sarg.begin(), sarg.end(), sarg.begin(), std::toupper);
+		if(sarg.compare("NVIDIA")==0) return NVIDIA_PREFERRED;
+		else if (sarg.compare("AMD")==0 || sarg.comapre("RADEON")==0) return AMD_PREFERRED;
+		else if (sarg.compare("INTEL")==0) return INTEL_PREFERRED;
+		else if (sarg.compare("ARM")==0 || sarg.compare("MALI")==0) return ARM_MALI_PREFERRED;
+		else if (sarg.compare("QUALCOMM")==0 || sarg.compare("ADRENO")==0) return QUALCOMM_PREFERRED;
+		else if (sarg.compare("POWERVR")==0) return IMG_TECH_PREFERRED;
+		else {
+			std::cout << "Unrecognized preference vendor. Type <program_name> h, for help. Fallback to 'no preference'" << std::endl;
+			return NO_VENDOR_PREFERRED;
+		}
+	}
+
+}
 
 double rtclock()
 {
