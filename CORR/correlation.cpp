@@ -324,7 +324,7 @@ int main()
 
 	init_arrays(data);
     
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	correlationVulkan(&vk, data, mean, stddev, symmat, symmat_outputFromGpu);

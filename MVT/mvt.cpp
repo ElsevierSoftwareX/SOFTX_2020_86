@@ -223,7 +223,7 @@ int main()
 
 	init_array(a, x1, x2, y_1, y_2);
 	
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	mvtVulkan(&vk, a, x1, x2, y_1, y_2, x1_outputFromGpu, x2_outputFromGpu);

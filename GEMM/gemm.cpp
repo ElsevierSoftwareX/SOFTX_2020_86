@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
 	init(A, B, C);
 	
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 	
 	gemmVulkan(&vk, A, B, C, C_outputFromGpu);

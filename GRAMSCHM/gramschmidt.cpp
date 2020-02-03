@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 	
 	init_array(A);
 	
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	gramschmidtVulkan(&vk, A, R, Q, A_outputFromGpu);

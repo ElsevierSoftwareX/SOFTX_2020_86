@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 
 	init_array(x, A);
 
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 	ataxGpu(&vk, A, x, y, tmp, y_outputFromGpu);
 	

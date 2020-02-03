@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 
 	init(A, x);
 	
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	gesummvVulkan(&vk, A, B, x, y, tmp, y_outputFromGpu);

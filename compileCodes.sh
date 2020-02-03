@@ -28,66 +28,68 @@ if [ "$1" == "clean" ]; then
 	cd ..
 fi
 
+DEVICE_SELECTION="0"
+
 if [ "$1" == "test" ]; then
 	clear;
 	cd 2DCONV
 	echo "Performing 2DConvolution"
-	./2DConvolution ;
+	./2DConvolution DEVICE_SELECTION ;
 	cd ..
 	cd 2MM
 	echo "Performing 2MM. Warning: CPU implementation will take a while..."
-	./2mm ;
+	./2mm DEVICE_SELECTION ;
 	cd ..
 	cd 3DCONV
 	echo "Performing 3DConvolution"
-	./3DConvolution ;
+	./3DConvolution DEVICE_SELECTION ;
 	cd ..
 	cd 3MM
 	echo "Performing 3MM" 
-	./3mm ;
+	./3mm DEVICE_SELECTION ;
 	cd ..
 	cd ATAX
 	echo "Performing ATAX"
-	./atax ;
+	./atax DEVICE_SELECTION ;
 	cd ..
 	cd BICG
 	echo "Performing BICG"
-	./bicg ;
+	./bicg DEVICE_SELECTION ;
 	cd ..
 	cd CORR
 	echo "Performing CORR"
-	./correlation ; 
+	./correlation DEVICE_SELECTION ; 
 	cd ..
 	cd COVAR
 	echo "Performing covariance"
-	./covariance ;
+	./covariance DEVICE_SELECTION ;
 	cd ..
 	cd FDTD-2D
 	echo "Performing FDTD-2D"
-	./fdtd2d ;
+	./fdtd2d DEVICE_SELECTION ;
 	cd ..
 	cd GEMM
 	echo "Performing GEMM"
-	./gemm ;
+	./gemm DEVICE_SELECTION ;
 	cd ..
 	cd GESUMMV
 	echo "Performing GESUMMV"
-	./gesummv ;
+	./gesummv DEVICE_SELECTION ;
 	cd ..
 	cd GRAMSCHM
 	echo "Performing GRAMSCHM"
-	./gramschmidt ;
+	./gramschmidt DEVICE_SELECTION ;
 	cd ..
 	cd MVT
 	echo "Performing MVT"
-	./mvt ; 
+	./mvt DEVICE_SELECTION ; 
 	cd ..
 	cd SYR2K
 	echo "Performing SYR2K"
-	./syr2k ;
+	./syr2k DEVICE_SELECTION ;
 	cd ..
 	cd SYRK 
 	echo "Performing SYRK"
-	./syrk ;
+	./syrk DEVICE_SELECTION ;
 	cd ..
 fi

@@ -195,7 +195,7 @@ int main()
 
 	init_arrays(A, B, C);
     
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	syr2kVulkan(&vk, A, B, C, C_outputFromGpu);

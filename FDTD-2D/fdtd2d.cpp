@@ -267,7 +267,7 @@ int main()
 
 	init_arrays(_fict_, ex, ey, hz);
 
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	fdtdVulkan(&vk, _fict_, ex, ey, hz, hz_outputFromGpu);

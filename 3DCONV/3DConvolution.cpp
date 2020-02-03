@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 	
 	init(A);
 	
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	convolution3DVulkan(&vk, A, B, B_outputFromGpu);

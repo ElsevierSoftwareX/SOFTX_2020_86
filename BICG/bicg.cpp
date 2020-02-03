@@ -234,7 +234,7 @@ int main(int argc, char** argv)
 
 	init_array(A, p, r);
 
-    	VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	bicgVulkan(&vk, A, r, s, p, q, s_outputFromGpu, q_outputFromGpu);

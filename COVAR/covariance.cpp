@@ -256,7 +256,7 @@ int main()
 
 	init_arrays(data);
     
-    VulkanCompute vk;
+    VulkanCompute vk("",parseDeviceSelectionFromArgs(argc,argv),GIGA);
 	GPU_argv_init(&vk);
 
 	covarianceVulkan(&vk, data, symmat, mean, symmat_outputFromGpu);
