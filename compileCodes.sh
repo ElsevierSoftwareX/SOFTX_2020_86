@@ -34,62 +34,62 @@ if [ "$1" == "test" ]; then
 	clear;
 	cd 2DCONV
 	echo "Performing 2DConvolution"
-	./2DConvolution DEVICE_SELECTION ;
+	./2DConvolution $DEVICE_SELECTION ;
 	cd ..
 	cd 2MM
 	echo "Performing 2MM. Warning: CPU implementation will take a while..."
-	./2mm DEVICE_SELECTION ;
+	./2mm $DEVICE_SELECTION ;
 	cd ..
 	cd 3DCONV
 	echo "Performing 3DConvolution"
-	./3DConvolution DEVICE_SELECTION ;
+	./3DConvolution $DEVICE_SELECTION ;
 	cd ..
 	cd 3MM
 	echo "Performing 3MM" 
-	./3mm DEVICE_SELECTION ;
+	./3mm $DEVICE_SELECTION ;
 	cd ..
 	cd ATAX
 	echo "Performing ATAX"
-	./atax DEVICE_SELECTION ;
+	./atax $DEVICE_SELECTION ;
 	cd ..
 	cd BICG
 	echo "Performing BICG"
-	./bicg DEVICE_SELECTION ;
+	./bicg $DEVICE_SELECTION ;
 	cd ..
 	cd CORR
 	echo "Performing CORR"
-	./correlation DEVICE_SELECTION ; 
+	./correlation $DEVICE_SELECTION ; 
 	cd ..
 	cd COVAR
 	echo "Performing covariance"
-	./covariance DEVICE_SELECTION ;
+	./covariance $DEVICE_SELECTION ;
 	cd ..
 	cd FDTD-2D
 	echo "Performing FDTD-2D"
-	./fdtd2d DEVICE_SELECTION ;
+	./fdtd2d $DEVICE_SELECTION ;
 	cd ..
 	cd GEMM
 	echo "Performing GEMM"
-	./gemm DEVICE_SELECTION ;
+	./gemm $DEVICE_SELECTION ;
 	cd ..
 	cd GESUMMV
 	echo "Performing GESUMMV"
-	./gesummv DEVICE_SELECTION ;
+	./gesummv $DEVICE_SELECTION ;
 	cd ..
 	cd GRAMSCHM
 	echo "Performing GRAMSCHM"
-	./gramschmidt DEVICE_SELECTION ;
+	./gramschmidt $DEVICE_SELECTION ;
 	cd ..
 	cd MVT
 	echo "Performing MVT"
-	./mvt DEVICE_SELECTION ; 
+	./mvt $DEVICE_SELECTION ; 
 	cd ..
 	cd SYR2K
 	echo "Performing SYR2K"
-	./syr2k DEVICE_SELECTION ;
+	./syr2k $DEVICE_SELECTION ;
 	cd ..
 	cd SYRK 
 	echo "Performing SYRK"
-	./syrk DEVICE_SELECTION ;
+	./syrk $DEVICE_SELECTION ;
 	cd ..
 fi
