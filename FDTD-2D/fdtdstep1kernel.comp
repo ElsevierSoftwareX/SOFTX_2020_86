@@ -17,7 +17,7 @@ layout(push_constant) uniform PushConsts {
 
 layout(std430) buffer;
 
-layout(set = 0, binding = 4) buffer d__fict_
+layout(set = 0, binding = 4) buffer d_fict_
 {
     DATA_TYPE elements[];
 }

@@ -45,10 +45,8 @@ void CrossFileAdapter::setAbsolutePath(std::string path)
 		path = path.substr(subtract);
 		path.insert(1,":");
 		std::cout << "ELABORATED " << path << std::endl;
-		abs_path = path;
-	#elif 
-		abs_path = path;
 	#endif
+		abs_path = path;
 }
 
 
