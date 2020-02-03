@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall --std=gnu++11
+CFLAGS = -Wall -O3 --std=gnu++11
 VKCOMPDIR = ../vkcomp
 ifeq ($(OS),Windows_NT)
 VKHEADERSDIR = $(VULKAN_SDK)/Include/vulkan
