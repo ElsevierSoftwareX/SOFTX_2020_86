@@ -191,7 +191,7 @@ void VulkanCompute::createContext()
 		}
 	}
 
-	if ((override_selection==-1)&&(gpus == 1 || preferred_vendor == NO_VENDOR_PREFERRED)) {
+	if ((override_selection==-1)&&(/*gpus == 1 ||*/ preferred_vendor == NO_VENDOR_PREFERRED)) {
 		phys_device = gpu_list.at(0);
 		vkGetPhysicalDeviceProperties(phys_device, &phys_device_props);
 	}

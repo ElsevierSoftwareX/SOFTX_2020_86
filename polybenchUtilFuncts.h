@@ -34,7 +34,7 @@ int parseDeviceSelectionFromArgs(const int argc, const char *const argv[])
 	sarg.compare("--help")==0 ||
 	sarg.compare("-help")==0 ||
 	sarg.compare("-h")==0 ){
-		std::cout << "* Usage " << argv[0] << "[device selection]" << std::endl;
+		std::cout << "* Usage " << argv[0] << " [device selection]" << std::endl;
 		std::cout << "A GPU Device in a multi GPU system might be selected either  " << std::endl;
 		std::cout << "	- by indicating an integer for the device among [1,2,3,4] to select the first, second, third or fourth available GPU device. Or" << std::endl;
 		std::cout << "	- by indicating a GPU vendor preference among " << std::endl;
@@ -59,12 +59,13 @@ int parseDeviceSelectionFromArgs(const int argc, const char *const argv[])
 			case 4: return DEV_SELECT_FOURTH;
 			default:
 				std::cout << "Device selection beyond the fourth device is currently unsupported. Fallback to 'no preference'" << std::endl;
-				return NO_VENDOR_PREFERRED; 
+				return NO_VENDOR_PREFERRED;
 		}
 	} else {
-		std::transform(sarg.begin(), sarg.end(), sarg.begin(), std::toupper);
+		std::transform(sarg.begin(), sarg.end(), sarg.begin(),
+		[](unsigned char c) -> unsigned char { return std::toupper(c); });
 		if(sarg.compare("NVIDIA")==0) return NVIDIA_PREFERRED;
-		else if (sarg.compare("AMD")==0 || sarg.comapre("RADEON")==0) return AMD_PREFERRED;
+		else if (sarg.compare("AMD")==0 || sarg.compare("RADEON")==0) return AMD_PREFERRED;
 		else if (sarg.compare("INTEL")==0) return INTEL_PREFERRED;
 		else if (sarg.compare("ARM")==0 || sarg.compare("MALI")==0) return ARM_MALI_PREFERRED;
 		else if (sarg.compare("QUALCOMM")==0 || sarg.compare("ADRENO")==0) return QUALCOMM_PREFERRED;
