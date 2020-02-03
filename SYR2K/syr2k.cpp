@@ -179,7 +179,7 @@ void syr2kVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DA
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 

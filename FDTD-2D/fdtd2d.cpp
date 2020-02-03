@@ -249,7 +249,7 @@ void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* 
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 

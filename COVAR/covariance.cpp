@@ -240,7 +240,7 @@ void covarianceVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* symmat, DAT
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 

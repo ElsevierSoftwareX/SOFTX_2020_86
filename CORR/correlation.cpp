@@ -306,7 +306,7 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 

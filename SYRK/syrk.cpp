@@ -199,7 +199,7 @@ void syrkVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* C, DATA_TYPE* C_outp
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 

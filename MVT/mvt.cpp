@@ -201,7 +201,7 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
 	double t_start, t_end;
 
