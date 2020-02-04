@@ -47,11 +47,16 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
     * Open a powershell terminal and type *compileScript.bat clean*
 
 
-# Status of each benchmarks
+# Tests
+
+![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/master/vkpolyimgs/ubuntutests.png)
+
+## Status of each benchmark
 
 | Benchmark                       | CPU-GPU Outputs Beyond Error Threshold   | Notes                              |
 |---------------------------------|------------------------------------------|------------------------------------|
-| 2DCONV                          |         0                                |                                    |                                                       | 2MM                             |         0                                |                                    |                                  
+| 2DCONV                          |         0                                |                                    |     
+| 2MM                             |         0                                |                                    |
 | 3DCONV                          |         0                                |                                    |
 | 3MM                             |         0                                |                                    |
 | ATAX                            |         0                                |                                    |
@@ -61,7 +66,7 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
 | FDTD-2D                         |         2                                |                                    |
 | GEMM                            |         0                                |                                    |
 | GESUMMV                         |         0                                |                                    |
-| GRAMSCHM                        |         0                                | Weird numbers in output buffer     |
+| GRAMSCHM                        |         0                                |                                    |
 | MVT                             |         0                                |                                    |
 | SYR2K                           |         0                                | Possible bug from original version |
 | SYRK                            |         0                                | Possible bug from original version |
