@@ -19,67 +19,69 @@ IF "%1"=="clean" (
     CD ..
 )
 
+SET DEVICE_SELECTION=0
+
 IF "%1"=="test" (
 	clear
 	cd 2DCONV
 	echo "Performing 2DConvolution"
-	2DConvolution.exe
+	2DConvolution.exe %DEVICE_SELECTION%
 	cd ..
 	cd 2MM
 	echo "Performing 2MM. Warning: CPU implementation will take a while..."
-	2mm.exe
+	2mm.exe %DEVICE_SELECTION%
 	cd ..
 	cd 3DCONV
 	echo "Performing 3DConvolution"
-	3DConvolution.exe
+	3DConvolution.exe %DEVICE_SELECTION%
 	cd ..
     cd 3MM
 	echo "Performing 3MM" 
-	3mm.exe
+	3mm.exe %DEVICE_SELECTION%
 	cd ..
 	cd ATAX
 	echo "Performing ATAX"
-	atax.exe
+	atax.exe %DEVICE_SELECTION%
 	cd ..
 	cd BICG
 	echo "Performing BICG"
-	bicg.exe
+	bicg.exe %DEVICE_SELECTION%
 	cd ..
 	cd CORR
 	echo "Performing CORR"
-	correlation.exe 
+	correlation.exe  %DEVICE_SELECTION%
 	cd ..
 	cd COVAR
 	echo "Performing covariance"
-	covariance.exe
+	covariance.exe %DEVICE_SELECTION%
 	cd ..
 	cd FDTD-2D
 	echo "Performing FDTD-2D"
-	fdtd2d.exe
+	fdtd2d.exe %DEVICE_SELECTION%
 	cd ..
 	cd GEMM
 	echo "Performing GEMM"
-	gemm.exe
+	gemm.exe %DEVICE_SELECTION%
 	cd ..
 	cd GESUMMV
 	echo "Performing GESUMMV"
-	gesummv.exe
+	gesummv.exe %DEVICE_SELECTION%
 	cd ..
 	cd GRAMSCHM
 	echo "Performing GRAMSCHM"
-	gramschmidt.exe
+	gramschmidt.exe %DEVICE_SELECTION%
 	cd ..
 	cd MVT
 	echo "Performing MVT"
-	mvt.exe 
+	mvt.exe %DEVICE_SELECTION%
 	cd ..
 	cd SYR2K
 	echo "Performing SYR2K"
-	syr2k.exe
+	syr2k.exe %DEVICE_SELECTION%
 	cd ..
 	cd SYRK 
 	echo "Performing SYRK"
-	syrk.exe
+	syrk.exe %DEVICE_SELECTION%
 	cd ..
 )
 
