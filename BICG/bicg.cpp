@@ -32,6 +32,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_array(DATA_TYPE *A, DATA_TYPE *p, DATA_TYPE *r)
 {
 	int i, j;
@@ -150,22 +152,6 @@ void bicgVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* r, DATA_TYPE* s, DAT
 	DATA_TYPE *r_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NX, BufferUsage::BUF_INOUT);
 	DATA_TYPE *s_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NY, BufferUsage::BUF_INOUT);
 
-    memcpy(A_gpu, A, sizeof(DATA_TYPE) * NX * NY);
-	memcpy(r_gpu, r, sizeof(DATA_TYPE) * NX);
-	memcpy(s_gpu, s, sizeof(DATA_TYPE) * NY);
-	memcpy(p_gpu, p, sizeof(DATA_TYPE) * NY);
-	memcpy(q_gpu, q, sizeof(DATA_TYPE) * NX);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(r_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(s_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(p_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(q_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid1((size_t)(ceil( ((float)NY) / ((float)block.x) )), 1);
     ComputeWorkDistribution_t grid2((size_t)(ceil( ((float)NX) / ((float)block.x) )), 1);
@@ -184,20 +170,49 @@ void bicgVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* r, DATA_TYPE* s, DAT
 		vk->setLaunchConfiguration(grid2,block);
 	PIPELINE_HANDLE hPipeline2 = vk->finalizePipeline();
 
-     vk->startCreateCommandList();
-		vk->selectPipeline(hPipeline1);
-		vk->launchComputation("bicgkernel1");
-        vk->selectPipeline(hPipeline2);
-        vk->launchComputation("bicgkernel2");
-	vk->finalizeCommandList();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-    vk->deviceSynch();
+	for(uint8_t iter=0; iter<iterations; iter++){
 
-	t_start = rtclock();
-    vk->submitWork();
-	vk->deviceSynch();
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+		memcpy(A_gpu, A, sizeof(DATA_TYPE) * NX * NY);
+		memcpy(r_gpu, r, sizeof(DATA_TYPE) * NX);
+		memcpy(s_gpu, s, sizeof(DATA_TYPE) * NY);
+		memcpy(p_gpu, p, sizeof(DATA_TYPE) * NY);
+		memcpy(q_gpu, q, sizeof(DATA_TYPE) * NX);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(r_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(s_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(p_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(q_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline1);
+			vk->launchComputation("bicgkernel1");
+			vk->selectPipeline(hPipeline2);
+			vk->launchComputation("bicgkernel2");
+		vk->finalizeCommandList();
+
+		vk->deviceSynch();
+
+		t_start = rtclock();
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+		
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(s_gpu),DEVICE_TO_HOST);

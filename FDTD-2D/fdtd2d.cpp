@@ -29,6 +29,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_arrays(DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* ey, DATA_TYPE* hz)
 {
 	int i, j;
@@ -159,20 +161,6 @@ void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* 
 	DATA_TYPE *ey_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (NX + 1) * NY, BufferUsage::BUF_INOUT);
 	DATA_TYPE *hz_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NX * NY, BufferUsage::BUF_INOUT);
 
-	memcpy(_fict_gpu, _fict_, sizeof(DATA_TYPE) * tmax);
-	memcpy(ex_gpu, ex, sizeof(DATA_TYPE) * NX * (NY + 1));
-	memcpy(ey_gpu, ey, sizeof(DATA_TYPE) * (NX + 1) * NY);
-	memcpy(hz_gpu, hz, sizeof(DATA_TYPE) * NX * NY);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(_fict_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(ex_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(ey_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(hz_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-
 	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid( (size_t)ceil(((float)NY) / ((float)block.x)), (size_t)ceil(((float)NX) / ((float)block.y)));*/
 
@@ -204,41 +192,67 @@ void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* 
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline3 = vk->finalizePipeline();
 
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
+
+	for(uint8_t iter=0; iter<iterations; iter++){
+
+		memcpy(_fict_gpu, _fict_, sizeof(DATA_TYPE) * tmax);
+		memcpy(ex_gpu, ex, sizeof(DATA_TYPE) * NX * (NY + 1));
+		memcpy(ey_gpu, ey, sizeof(DATA_TYPE) * (NX + 1) * NY);
+		memcpy(hz_gpu, hz, sizeof(DATA_TYPE) * NX * NY);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(_fict_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(ex_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(ey_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(hz_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+
+		vk->startCreateCommandList();
+			for(int t = 0; t< tmax; t++){
+				vk->selectPipeline(hPipeline1);
+				vk->copySymbolInt(t,"fdtdstep1kernel",0);
+				vk->launchComputation("fdtdstep1kernel");
+				vk->selectPipeline(hPipeline2);
+				vk->copySymbolInt(t,"fdtdstep2kernel",0);
+				vk->launchComputation("fdtdstep2kernel");
+				vk->selectPipeline(hPipeline3);
+				vk->copySymbolInt(t,"fdtdstep3kernel",0);
+				vk->launchComputation("fdtdstep3kernel");
+			}
+		vk->finalizeCommandList();
+		vk->deviceSynch();
+
+
+		t_start = rtclock();
+
+		vk->submitWork();
+		vk->deviceSynch();
+
+		/*for(int t = 0; t< tmax; t++)
+		{
+			fdtd_step1_kernel<<<grid,block>>>(_fict_gpu, ex_gpu, ey_gpu, hz_gpu, t);
+			cudaThreadSynchronize();
+			fdtd_step2_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
+			cudaThreadSynchronize();
+			fdtd_step3_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
+			cudaThreadSynchronize();
+		}*/
+		
+		t_end = rtclock();
+		
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
+
     vk->startCreateCommandList();
-        for(int t = 0; t< tmax; t++){
-             vk->selectPipeline(hPipeline1);
-             vk->copySymbolInt(t,"fdtdstep1kernel",0);
-             vk->launchComputation("fdtdstep1kernel");
-             vk->selectPipeline(hPipeline2);
-             vk->copySymbolInt(t,"fdtdstep2kernel",0);
-             vk->launchComputation("fdtdstep2kernel");
-             vk->selectPipeline(hPipeline3);
-             vk->copySymbolInt(t,"fdtdstep3kernel",0);
-             vk->launchComputation("fdtdstep3kernel");
-        }
-    vk->finalizeCommandList();
-	vk->deviceSynch();
-
-
-	t_start = rtclock();
-
-    vk->submitWork();
-	vk->deviceSynch();
-
-	/*for(int t = 0; t< tmax; t++)
-	{
-		fdtd_step1_kernel<<<grid,block>>>(_fict_gpu, ex_gpu, ey_gpu, hz_gpu, t);
-		cudaThreadSynchronize();
-		fdtd_step2_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
-		cudaThreadSynchronize();
-		fdtd_step3_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
-		cudaThreadSynchronize();
-	}*/
-	
-	t_end = rtclock();
-    fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
-
-     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(hz_gpu),DEVICE_TO_HOST);
 	vk->finalizeCommandList();
 	vk->submitWork();

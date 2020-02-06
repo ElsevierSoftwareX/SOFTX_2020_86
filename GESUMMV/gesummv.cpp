@@ -32,6 +32,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void gesummv(DATA_TYPE *A, DATA_TYPE *B, DATA_TYPE *x, DATA_TYPE *y, DATA_TYPE *tmp)
 {
 	int i, j;
@@ -121,23 +123,7 @@ void gesummvVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* x, 
 	DATA_TYPE *y_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE *tmp_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 
-	memcpy(A_gpu, A, sizeof(DATA_TYPE) * N * N);
-	memcpy(B_gpu, B, sizeof(DATA_TYPE) * N * N);
-	memcpy(x_gpu, x, sizeof(DATA_TYPE) * N);
-	memcpy(y_gpu, y, sizeof(DATA_TYPE) * N);
-	memcpy(tmp_gpu, tmp, sizeof(DATA_TYPE) * N);
-
-     vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(B_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(x_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(y_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(tmp_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-
-    /*
+	  /*
 	dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid((unsigned int)ceil( ((float)N) / ((float)block.x) ), 1);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
@@ -152,19 +138,48 @@ void gesummvVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* x, 
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-	    vk->selectPipeline(hPipeline);
-	    vk->launchComputation("gesummvkernel");
-	vk->finalizeCommandList();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-    vk->deviceSynch();
+	for(uint8_t iter=0; iter<iterations; iter++){
 
-	t_start = rtclock();
-	/*gesummv_kernel<<< grid, block>>>(A_gpu,B_gpu,x_gpu, y_gpu, tmp_gpu);
-	cudaThreadSynchronize();*/
-    vk->submitWork();
-    vk->deviceSynch();
-	t_end = rtclock();
+		memcpy(A_gpu, A, sizeof(DATA_TYPE) * N * N);
+		memcpy(B_gpu, B, sizeof(DATA_TYPE) * N * N);
+		memcpy(x_gpu, x, sizeof(DATA_TYPE) * N);
+		memcpy(y_gpu, y, sizeof(DATA_TYPE) * N);
+		memcpy(tmp_gpu, tmp, sizeof(DATA_TYPE) * N);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(B_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(x_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(y_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(tmp_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline);
+			vk->launchComputation("gesummvkernel");
+		vk->finalizeCommandList();
+
+		vk->deviceSynch();
+
+		t_start = rtclock();
+		/*gesummv_kernel<<< grid, block>>>(A_gpu,B_gpu,x_gpu, y_gpu, tmp_gpu);
+		cudaThreadSynchronize();*/
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+		
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(y_gpu),DEVICE_TO_HOST);
@@ -173,8 +188,7 @@ void gesummvVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* x, 
 	vk->deviceSynch();
 
 	memcpy(y_outputFromGpu, y_gpu, sizeof(DATA_TYPE) * N);
-
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	
 }
 
 

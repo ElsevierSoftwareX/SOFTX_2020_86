@@ -33,6 +33,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_array(DATA_TYPE *x, DATA_TYPE *A)
 {
 	int i, j;
@@ -133,34 +135,11 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 	DATA_TYPE *y_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NY, BufferUsage::BUF_INOUT);
 	DATA_TYPE *tmp_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NX, BufferUsage::BUF_INOUT);
 
-    memcpy(A_gpu,A,sizeof(DATA_TYPE) * NX * NY);
-    memcpy(x_gpu,x,sizeof(DATA_TYPE) * NY);
-    memcpy(y_gpu,y,sizeof(DATA_TYPE) * NY);
-    memcpy(tmp_gpu,tmp,sizeof(DATA_TYPE) * NX);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(x_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(y_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(tmp_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-    
-	/*cudaMemcpy(A_gpu, A, sizeof(DATA_TYPE) * NX * NY, cudaMemcpyHostToDevice);
-	cudaMemcpy(x_gpu, x, sizeof(DATA_TYPE) * NY, cudaMemcpyHostToDevice);
-	cudaMemcpy(y_gpu, y, sizeof(DATA_TYPE) * NY, cudaMemcpyHostToDevice);
-	cudaMemcpy(tmp_gpu, tmp, sizeof(DATA_TYPE) * NX, cudaMemcpyHostToDevice);
-	
-	dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid1((size_t)(ceil( ((float)NX) / ((float)block.x) )), 1);
-	dim3 grid2((size_t)(ceil( ((float)NY) / ((float)block.x) )), 1);*/
-
-    ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
+	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid1((size_t)(ceil( ((float)NX) / ((float)block.x) )), 1);
     ComputeWorkDistribution_t grid2((size_t)(ceil( ((float)NY) / ((float)block.x) )), 1);
 
-    vk->startCreatePipeline("ataxkernel1");
+	vk->startCreatePipeline("ataxkernel1");
 		vk->setArg(PPTR(A_gpu),"ataxkernel1",4);
 		vk->setArg(PPTR(x_gpu),"ataxkernel1",5);
         vk->setArg(PPTR(tmp_gpu),"ataxkernel1",6);
@@ -174,26 +153,51 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 		vk->setLaunchConfiguration(grid2,block);
 	PIPELINE_HANDLE hPipeline2 = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-		vk->selectPipeline(hPipeline1);
-		vk->launchComputation("ataxkernel1");
-        vk->selectPipeline(hPipeline2);
-        vk->launchComputation("ataxkernel2");
-	vk->finalizeCommandList();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-	vk->deviceSynch();
+	for(uint8_t iter=0; iter<iterations; iter++){
 
-	t_start = rtclock();
+		memcpy(A_gpu,A,sizeof(DATA_TYPE) * NX * NY);
+		memcpy(x_gpu,x,sizeof(DATA_TYPE) * NY);
+		memcpy(y_gpu,y,sizeof(DATA_TYPE) * NY);
+		memcpy(tmp_gpu,tmp,sizeof(DATA_TYPE) * NX);
 
-    vk->submitWork();
-	vk->deviceSynch();
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(x_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(y_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(tmp_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+	
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline1);
+			vk->launchComputation("ataxkernel1");
+			vk->selectPipeline(hPipeline2);
+			vk->launchComputation("ataxkernel2");
+		vk->finalizeCommandList();
 
-	/*atax_kernel1<<< grid1, block >>>(A_gpu,x_gpu,tmp_gpu);
-	cudaThreadSynchronize();
-	atax_kernel2<<< grid2, block >>>(A_gpu,y_gpu,tmp_gpu);
-	cudaThreadSynchronize();*/
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+		vk->deviceSynch();
+
+		t_start = rtclock();
+
+		vk->submitWork();
+		vk->deviceSynch();
+		/*atax_kernel1<<< grid1, block >>>(A_gpu,x_gpu,tmp_gpu);
+		cudaThreadSynchronize();
+		atax_kernel2<<< grid2, block >>>(A_gpu,y_gpu,tmp_gpu);
+		cudaThreadSynchronize();*/
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(y_gpu),DEVICE_TO_HOST);

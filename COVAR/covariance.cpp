@@ -39,6 +39,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_arrays(DATA_TYPE* data)
 {
 	int i, j;
@@ -160,19 +162,7 @@ void covarianceVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* symmat, DAT
 	DATA_TYPE *data_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (N+1), BufferUsage::BUF_INOUT);
     DATA_TYPE *symmat_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1) * (M+1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *mean_gpu =  (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
-	
-	memcpy(data_gpu, data, sizeof(DATA_TYPE) * (M+1) * (N+1));
-	memcpy(symmat_gpu, symmat, sizeof(DATA_TYPE) * (M+1) * (M+1));
-	memcpy(mean_gpu, mean, sizeof(DATA_TYPE) * (M+1));
 
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(data_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(symmat_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(mean_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-	
 	/*dim3 block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
 	dim3 grid1((size_t)(ceil((float)M) / ((float)DIM_THREAD_BLOCK_KERNEL_1_X)), 1);*/
     ComputeWorkDistribution_t block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
@@ -206,28 +196,53 @@ void covarianceVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* symmat, DAT
 		vk->setLaunchConfiguration(grid3,block3);
 	PIPELINE_HANDLE hPipeline3 = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-	    vk->selectPipeline(hPipeline1);
-	    vk->launchComputation("meankernel");
-        vk->selectPipeline(hPipeline2);
-        vk->launchComputation("reducekernel");
-        vk->selectPipeline(hPipeline3);
-        vk->launchComputation("covarkernel");
-	vk->finalizeCommandList();
 
-    vk->deviceSynch();
-	
-	t_start = rtclock();
-    vk->submitWork();
-	vk->deviceSynch();
-	/*mean_kernel<<<grid1, block1>>>(mean_gpu,data_gpu);
-	cudaThreadSynchronize();
-	reduce_kernel<<<grid2, block2>>>(mean_gpu,data_gpu);
-	cudaThreadSynchronize();
-	covar_kernel<<<grid3, block3>>>(symmat_gpu,data_gpu);
-	cudaThreadSynchronize();*/
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
+
+	for(uint8_t iter=0; iter<iterations; iter++){
+
+		memcpy(data_gpu, data, sizeof(DATA_TYPE) * (M+1) * (N+1));
+		memcpy(symmat_gpu, symmat, sizeof(DATA_TYPE) * (M+1) * (M+1));
+		memcpy(mean_gpu, mean, sizeof(DATA_TYPE) * (M+1));
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(data_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(symmat_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(mean_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline1);
+			vk->launchComputation("meankernel");
+			vk->selectPipeline(hPipeline2);
+			vk->launchComputation("reducekernel");
+			vk->selectPipeline(hPipeline3);
+			vk->launchComputation("covarkernel");
+		vk->finalizeCommandList();
+
+		vk->deviceSynch();
+		
+		t_start = rtclock();
+		vk->submitWork();
+		vk->deviceSynch();
+		/*mean_kernel<<<grid1, block1>>>(mean_gpu,data_gpu);
+		cudaThreadSynchronize();
+		reduce_kernel<<<grid2, block2>>>(mean_gpu,data_gpu);
+		cudaThreadSynchronize();
+		covar_kernel<<<grid3, block3>>>(symmat_gpu,data_gpu);
+		cudaThreadSynchronize();*/
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(symmat_gpu),DEVICE_TO_HOST);

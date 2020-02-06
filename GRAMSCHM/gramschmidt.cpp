@@ -31,6 +31,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void gramschmidt(DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE* Q)
 {
 	int i,j,k;
@@ -150,16 +152,7 @@ void gramschmidtVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE*
 	DATA_TYPE *R_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * M * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE *Q_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * M * N, BufferUsage::BUF_INOUT);
 
-    memcpy(A_gpu,A,sizeof(DATA_TYPE) * M * N);
-
-     vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-	
-
-    /*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);*/
+	 /*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	/*dim3 gridKernel1(1, 1);*/
     ComputeWorkDistribution_t grid1(1,1);
@@ -192,36 +185,58 @@ void gramschmidtVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE*
 		vk->setLaunchConfiguration(grid3,block);
 	PIPELINE_HANDLE hPipeline3 = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-        for(int k = 0; k < N; k++){
-             vk->selectPipeline(hPipeline1);
-             vk->copySymbolInt(k,"gskernel1",0);
-             vk->launchComputation("gskernel1");
-             vk->selectPipeline(hPipeline2);
-             vk->copySymbolInt(k,"gskernel2",0);
-             vk->launchComputation("gskernel2");
-             vk->selectPipeline(hPipeline3);
-             vk->copySymbolInt(k,"gskernel3",0);
-             vk->launchComputation("gskernel3");
-        }
-    vk->finalizeCommandList();
-	vk->deviceSynch();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-	t_start = rtclock();
-	/*int k;
-	for (k = 0; k < N; k++)
-	{
-		gramschmidt_kernel1<<<gridKernel1,block>>>(A_gpu, R_gpu, Q_gpu, k);
-		cudaThreadSynchronize();
-		gramschmidt_kernel2<<<gridKernel2,block>>>(A_gpu, R_gpu, Q_gpu, k);
-		cudaThreadSynchronize();
-		gramschmidt_kernel3<<<gridKernel3,block>>>(A_gpu, R_gpu, Q_gpu, k);
-		cudaThreadSynchronize();
-	}*/
-    vk->submitWork();
-	vk->deviceSynch();
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	for(uint8_t iter=0; iter<iterations; iter++){
+
+		memcpy(A_gpu,A,sizeof(DATA_TYPE) * M * N);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+		
+	
+
+		vk->startCreateCommandList();
+			for(int k = 0; k < N; k++){
+				vk->selectPipeline(hPipeline1);
+				vk->copySymbolInt(k,"gskernel1",0);
+				vk->launchComputation("gskernel1");
+				vk->selectPipeline(hPipeline2);
+				vk->copySymbolInt(k,"gskernel2",0);
+				vk->launchComputation("gskernel2");
+				vk->selectPipeline(hPipeline3);
+				vk->copySymbolInt(k,"gskernel3",0);
+				vk->launchComputation("gskernel3");
+			}
+		vk->finalizeCommandList();
+		vk->deviceSynch();
+
+		t_start = rtclock();
+		/*int k;
+		for (k = 0; k < N; k++)
+		{
+			gramschmidt_kernel1<<<gridKernel1,block>>>(A_gpu, R_gpu, Q_gpu, k);
+			cudaThreadSynchronize();
+			gramschmidt_kernel2<<<gridKernel2,block>>>(A_gpu, R_gpu, Q_gpu, k);
+			cudaThreadSynchronize();
+			gramschmidt_kernel3<<<gridKernel3,block>>>(A_gpu, R_gpu, Q_gpu, k);
+			cudaThreadSynchronize();
+		}*/
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+		
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(A_gpu),DEVICE_TO_HOST);

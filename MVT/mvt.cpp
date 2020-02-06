@@ -29,6 +29,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_array(DATA_TYPE* A, DATA_TYPE* x1, DATA_TYPE* x2, DATA_TYPE* y1, DATA_TYPE* y2)
 {
 	int i, j;
@@ -137,22 +139,6 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 	DATA_TYPE* y_1_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE* y_2_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 
-	memcpy(a_gpu, a, sizeof(DATA_TYPE) * N * N);
-	memcpy(x1_gpu, x1, sizeof(DATA_TYPE) * N);
-	memcpy(x2_gpu, x2, sizeof(DATA_TYPE) * N);
-	memcpy(y_1_gpu, y_1, sizeof(DATA_TYPE) * N);
-	memcpy(y_2_gpu, y_2, sizeof(DATA_TYPE) * N);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(a_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(x1_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(x2_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(y_1_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(y_2_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-	
 	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid((size_t)ceil((float)N/ ((float)DIM_THREAD_BLOCK_X)), 1);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
@@ -172,22 +158,50 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline2 = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-            vk->selectPipeline(hPipeline1);
-            vk->launchComputation("mvtkernel1");
-            vk->selectPipeline(hPipeline2);
-            vk->launchComputation("mvtkernel2");
-    vk->finalizeCommandList();
-	vk->deviceSynch();
-	
-	t_start = rtclock();
-	/*mvt_kernel1<<<grid,block>>>(a_gpu,x1_gpu,y_1_gpu);
-	mvt_kernel2<<<grid,block>>>(a_gpu,x2_gpu,y_2_gpu);
-	cudaThreadSynchronize();*/
-    vk->submitWork();
-    vk->deviceSynch();
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
+
+	for(uint8_t iter=0; iter<iterations; iter++){
+		
+		memcpy(a_gpu, a, sizeof(DATA_TYPE) * N * N);
+		memcpy(x1_gpu, x1, sizeof(DATA_TYPE) * N);
+		memcpy(x2_gpu, x2, sizeof(DATA_TYPE) * N);
+		memcpy(y_1_gpu, y_1, sizeof(DATA_TYPE) * N);
+		memcpy(y_2_gpu, y_2, sizeof(DATA_TYPE) * N);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(a_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(x1_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(x2_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(y_1_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(y_2_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+		
+		vk->startCreateCommandList();
+				vk->selectPipeline(hPipeline1);
+				vk->launchComputation("mvtkernel1");
+				vk->selectPipeline(hPipeline2);
+				vk->launchComputation("mvtkernel2");
+		vk->finalizeCommandList();
+		vk->deviceSynch();
+		
+		t_start = rtclock();
+		/*mvt_kernel1<<<grid,block>>>(a_gpu,x1_gpu,y_1_gpu);
+		mvt_kernel2<<<grid,block>>>(a_gpu,x2_gpu,y_2_gpu);
+		cudaThreadSynchronize();*/
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(x1_gpu),DEVICE_TO_HOST);
