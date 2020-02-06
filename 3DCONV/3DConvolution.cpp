@@ -31,6 +31,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void conv3D(DATA_TYPE* A, DATA_TYPE* B)
 {
 	int i, j, k;
@@ -135,41 +137,54 @@ void convolution3DVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYP
 	DATA_TYPE *A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ*NK, BufferUsage::BUF_INOUT);
 	DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ*NK, BufferUsage::BUF_INOUT);
 
-    memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ*NK);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-
 	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid((size_t)(ceil( ((float)NK) / ((float)block.x) )), (size_t)(ceil( ((float)NJ) / ((float)block.y) )));*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)(ceil( ((float)NK) / ((float)block.x) )), (size_t)(ceil( ((float)NJ) / ((float)block.y) )));
 
-    vk->startCreatePipeline("conv3DKernel");
+	vk->startCreatePipeline("conv3DKernel");
 		vk->setArg(PPTR(A_gpu),"conv3DKernel",4);
 		vk->setArg(PPTR(B_gpu),"conv3DKernel",5);
         vk->setSymbol(0, sizeof(int));
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-	vk->selectPipeline(hPipeline);
-        for(int i=0; i< NI-1; ++i){
-             vk->copySymbolInt(i,"conv3DKernel",0);
-             vk->launchComputation("conv3DKernel");
-        }
-    vk->finalizeCommandList();
-	vk->deviceSynch();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-	t_start = rtclock();
-    vk->submitWork();
-	vk->deviceSynch();
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
-	
+	for(uint8_t iter=0; iter<iterations; iter++){
+
+		memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ*NK);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
+
+		vk->startCreateCommandList();
+		vk->selectPipeline(hPipeline);
+			for(int i=0; i< NI-1; ++i){
+				vk->copySymbolInt(i,"conv3DKernel",0);
+				vk->launchComputation("conv3DKernel");
+			}
+		vk->finalizeCommandList();
+		vk->deviceSynch();
+
+		t_start = rtclock();
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+
+	}
+
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(B_gpu),DEVICE_TO_HOST);
 	vk->finalizeCommandList();
