@@ -31,6 +31,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN  
+
 void conv2D(DATA_TYPE* A, DATA_TYPE* B)
 {
 	int i, j;
@@ -121,15 +123,7 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 	DATA_TYPE *A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
     DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
 
-	memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
-
-	vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-
-	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
+		/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );*/
 	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
@@ -140,23 +134,42 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 		vk->setLaunchConfiguration(grid,block);
 	PIPELINE_HANDLE hPipeline = vk->finalizePipeline();
 
-	vk->startCreateCommandList();
-		vk->selectPipeline(hPipeline);
-		vk->launchComputation("conv2DKernel");
-	vk->finalizeCommandList();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-	vk->deviceSynch();
+	for(uint8_t iter=0; iter<iterations; i++){
 
-	t_start = rtclock();
+		memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
 
-	/*Convolution2D_kernel<<<grid,block>>>(A_gpu,B_gpu);
-	cudaThreadSynchronize();*/
-	vk->submitWork();
-	vk->deviceSynch();
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+		vk->submitWork();
+		vk->deviceSynch();
 
-	t_end = rtclock();
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline);
+			vk->launchComputation("conv2DKernel");
+		vk->finalizeCommandList();
 
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+		vk->deviceSynch();
+
+		t_start = rtclock();
+
+		/*Convolution2D_kernel<<<grid,block>>>(A_gpu,B_gpu);
+		cudaThreadSynchronize();*/
+		vk->submitWork();
+		vk->deviceSynch();
+
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	}
 
 	//cudaMemcpy(B_outputFromGpu, B_gpu, sizeof(DATA_TYPE) * NI * NJ, cudaMemcpyDeviceToHost);
 	vk->startCreateCommandList();
