@@ -29,6 +29,8 @@ Such defines are common for host and device code.
 
 #define VERBOSE_COMPARE_NUM -1
 
+#define WARM_UP_RUN
+
 void init_array(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D)
 {
 	int i, j;
@@ -166,20 +168,6 @@ void mm2Vulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA
 	DATA_TYPE *D_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NJ * NL, BufferUsage::BUF_INOUT);
 	DATA_TYPE *E_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NI * NL, BufferUsage::BUF_INOUT);
 
-    memcpy(A_gpu,A,sizeof(DATA_TYPE) * NI * NK);
-    memcpy(B_gpu,B,sizeof(DATA_TYPE) * NK * NJ);
-    memcpy(C_gpu,C,sizeof(DATA_TYPE) * NI * NJ);
-    memcpy(D_gpu,D,sizeof(DATA_TYPE) * NJ * NL);
-
-    vk->startCreateCommandList();
-		vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(B_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(C_gpu),HOST_TO_DEVICE);
-        vk->synchBuffer(PPTR(D_gpu),HOST_TO_DEVICE);
-	vk->finalizeCommandList();
-	vk->submitWork();
-	vk->deviceSynch();
-		
 	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	dim3 grid1((size_t)ceil( ((float)NJ) / ((float)block.x) ), (size_t)ceil( ((float)NI) / ((float)block.y)) );
 	dim3 grid2((size_t)ceil( ((float)NL) / ((float)block.x) ), (size_t)ceil( ((float)NI) / ((float)block.y)) );*/
@@ -202,20 +190,49 @@ void mm2Vulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA
 		vk->setLaunchConfiguration(grid2,block);
 	PIPELINE_HANDLE hPipeline2 = vk->finalizePipeline();
 
-    vk->startCreateCommandList();
-		vk->selectPipeline(hPipeline1);
-		vk->launchComputation("mm2kernel1");
-        vk->selectPipeline(hPipeline2);
-        vk->launchComputation("mm2kernel2");
-	vk->finalizeCommandList();
+#ifdef WARM_UP_RUN
+	const uint8_t iterations = 2;
+#else
+	const uint8_t iterations = 1;
+#endif 
 
-	vk->deviceSynch();
+	for(uint8_t iter=0; iter<iterations; iter++){
 
-	t_start = rtclock();
-	vk->submitWork();
-	vk->deviceSynch();
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+		memcpy(A_gpu,A,sizeof(DATA_TYPE) * NI * NK);
+		memcpy(B_gpu,B,sizeof(DATA_TYPE) * NK * NJ);
+		memcpy(C_gpu,C,sizeof(DATA_TYPE) * NI * NJ);
+		memcpy(D_gpu,D,sizeof(DATA_TYPE) * NJ * NL);
+
+		vk->startCreateCommandList();
+			vk->synchBuffer(PPTR(A_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(B_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(C_gpu),HOST_TO_DEVICE);
+			vk->synchBuffer(PPTR(D_gpu),HOST_TO_DEVICE);
+		vk->finalizeCommandList();
+
+		vk->submitWork();
+		vk->deviceSynch();
+			
+		vk->startCreateCommandList();
+			vk->selectPipeline(hPipeline1);
+			vk->launchComputation("mm2kernel1");
+			vk->selectPipeline(hPipeline2);
+			vk->launchComputation("mm2kernel2");
+		vk->finalizeCommandList();
+
+		vk->deviceSynch();
+
+		t_start = rtclock();
+		vk->submitWork();
+		vk->deviceSynch();
+		t_end = rtclock();
+
+		if(iterations>1&&iter==0)
+			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+	
+	}
+
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(E_gpu),DEVICE_TO_HOST);
