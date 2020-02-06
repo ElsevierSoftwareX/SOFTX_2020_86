@@ -140,7 +140,7 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 	const uint8_t iterations = 1;
 #endif 
 
-	for(uint8_t iter=0; iter<iterations; i++){
+	for(uint8_t iter=0; iter<iterations; iter++){
 
 		memcpy(A_gpu,A,sizeof(DATA_TYPE)*NI*NJ);// "copy" back the data for main function
 
