@@ -434,11 +434,11 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 
 #endif
 
-/*#if defined(__ANDROID__)
+#ifdef __ANDROID__
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
 
 	std::string s = f.getAbsolutePath() + ".spv";
-
+	AAssetManager* assetManager = androidapp->activity->assetManager;
 	AAsset* asset = AAssetManager_open(assetManager, s.c_str(), AASSET_MODE_STREAMING);
 	assert(asset);
 	size_t size = AAsset_getLength(asset);
@@ -447,8 +447,28 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 	char *shaderCode = new char[size];
 	AAsset_read(asset, shaderCode, size);
 	AAsset_close(asset);
+
+	VkShaderModule shaderModule;
+	VkShaderModuleCreateInfo moduleCreateInfo;
+	moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	moduleCreateInfo.pNext = NULL;
+	moduleCreateInfo.codeSize = size;
+	moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+	moduleCreateInfo.flags = 0;
+
+	VK_CRITICAL_CALL(vkCreateShaderModule(device, &moduleCreateInfo, VK_NULL_HANDLE, &shaderModule);)
+	errorCheck();
+
+	delete[] shaderCode;
+
+	program_map.insert(std::pair<std::string, VkShaderModule>(shader_id, shaderModule));
+
+	DBG_PRINT("SPV binary Shader compiled successfully")
+
+	return (int32_t)program_map.size();
+
 }
-#else*/
+#else
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id)
 {
 	std::string compilation_output = "";
@@ -545,7 +565,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 
 	return (int32_t)program_map.size();
 }
-//#endif 
+#endif 
 
 int32_t VulkanCompute::loadAndCompileShader(const std::string s, const std::string shader_id)
 {
