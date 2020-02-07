@@ -32,6 +32,15 @@ LPCWSTR CrossFileAdapter::getLPCWSTRpath() {
 }
 #endif
 
+bool CrossFileAdapter::endsWith(std::string const &ending) {
+
+	std::string fullString = abs_path;
+
+	if (fullString.length() >= ending.length()) 
+		return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+	else return false;
+
+}
 
 std::string CrossFileAdapter::getAbsolutePath()
 {

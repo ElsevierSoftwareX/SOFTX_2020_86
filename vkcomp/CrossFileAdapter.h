@@ -44,6 +44,8 @@ public:
 
 	void setAbsolutePath(std::string path);
 
+	bool endsWith(std::string const &ending);
+	
 	~CrossFileAdapter();
 
 private:

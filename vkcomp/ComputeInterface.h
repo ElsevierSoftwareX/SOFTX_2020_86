@@ -183,7 +183,7 @@ Also, new generation APIs pose restrictions on when and how call some of the mem
 		/*! \fn deviceSynch()
 		\brief blocks the host until all computations enqueued in the GPU are finished.
 		*/
-		virtual inline void deviceSynch()=0;
+		virtual void deviceSynch()=0;
 
 		/*! \fn void freeResource(void* resource)
 		\brief frees the specified resource

@@ -29,11 +29,11 @@
 			char argv[1][10] = {benchmarkname};\
 			main((int)1,(char**)argv);\
 			ANativeActivity_finish(app->activity);\
-		}\ 
+		}\
 	}\
 	void android_main(android_app* state) {\
-		androidapp = state;\ 
-		androidapp->onAppCmd = handleAppCommand;\ 
+		androidapp = state;\
+		androidapp->onAppCmd = handleAppCommand;\
 		int ident, events;\
 		struct android_poll_source* source;\
 		while ((ident = ALooper_pollAll(-1, NULL, &events, (void**)&source)) >= 0) {\
@@ -46,7 +46,7 @@
 		}\
 	}
 #else 
-	#define ANDROID_MAIN(benchmarkname) {}
+	#define ANDROID_MAIN(benchmarkname) 
 #endif
 
 bool isNumber(const std::string& s)

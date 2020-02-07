@@ -437,7 +437,11 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 #ifdef __ANDROID__
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
 
-	std::string s = f.getAbsolutePath() + ".spv";
+	std::string s = f.getAbsolutePath();
+
+	if(!f.endsWith(".spv"))
+		s += ".spv";
+	
 	AAssetManager* assetManager = androidapp->activity->assetManager;
 	AAsset* asset = AAssetManager_open(assetManager, s.c_str(), AASSET_MODE_STREAMING);
 	assert(asset);
@@ -1132,7 +1136,7 @@ void VulkanCompute::launchComputation(const std::string computation_identifier)
 
 }
 
-inline void VulkanCompute::deviceSynch()
+void VulkanCompute::deviceSynch()
 {
 	if (CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 	{

@@ -98,7 +98,7 @@ public:
 	void copySymbolFloat(float value, const std::string shader, const uint32_t location);
 	void setLaunchConfiguration(const ComputeWorkDistribution_t blocks, const ComputeWorkDistribution_t threads = ComputeWorkDistribution_t{0,0,0});
 	void launchComputation(const std::string computation_identifier);
-	inline void deviceSynch();
+	void deviceSynch();
 	void freeResource(void* resource);
 	void freeResources();
 	//void updatePointer(void** ptr);
