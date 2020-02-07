@@ -96,6 +96,10 @@ void VulkanCompute::createContext()
 
 	ComputeInterface::createContext();
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+		vks::android::loadVulkanLibrary();
+#endif
+
 	//pre_allocated_push_constants = (uint8_t*)malloc(PRE_ALLOCATED_BUFFER_FOR_PUSH_CONSTANTS_SIZE);
 
 	VkApplicationInfo app_info = {};
@@ -154,6 +158,10 @@ void VulkanCompute::createContext()
 
 	VK_CRITICAL_CALL(vkCreateInstance(&c_app_info, NULL, &instance);)
 	errorCheck();
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	vks::android::loadVulkanFunctions(instance);
+#endif
 
 #ifdef DEBUG_VK_ENABLED
 	setupDebug();
@@ -414,6 +422,33 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 
 }
 
+#ifdef __ANDROID__
+
+	void VulkanCompute::setAndroidAppCtx(android_app *app_ctx){
+		androidapp = app_ctx;
+	}
+
+	android_app *VulkanCompute::getAndroidAppCtx(){
+		return androidapp;
+	}
+
+#endif
+
+/*#if defined(__ANDROID__)
+int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
+
+	std::string s = f.getAbsolutePath() + ".spv";
+
+	AAsset* asset = AAssetManager_open(assetManager, s.c_str(), AASSET_MODE_STREAMING);
+	assert(asset);
+	size_t size = AAsset_getLength(asset);
+	assert(size > 0);
+
+	char *shaderCode = new char[size];
+	AAsset_read(asset, shaderCode, size);
+	AAsset_close(asset);
+}
+#else*/
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id)
 {
 	std::string compilation_output = "";
@@ -425,6 +460,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 #endif
 
 	size_t index = f.getAbsolutePath().find_last_of(FILE_SEPARATOR);
+
 	if (index != std::string::npos) {
 #ifdef _WIN32
 		index++;
@@ -509,6 +545,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 
 	return (int32_t)program_map.size();
 }
+//#endif 
 
 int32_t VulkanCompute::loadAndCompileShader(const std::string s, const std::string shader_id)
 {
@@ -1274,7 +1311,11 @@ void VulkanCompute::errorCheck()
 		case	VK_ERROR_INCOMPATIBLE_DRIVER: FATAL_EXIT("Driver not compatible")
 		case	VK_ERROR_TOO_MANY_OBJECTS: FATAL_EXIT("Too many objects")
 		case	VK_ERROR_FORMAT_NOT_SUPPORTED: FATAL_EXIT("Format not supported")
+
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
 		case	VK_ERROR_FRAGMENTED_POOL: FATAL_EXIT("Fragmented pool error")
+#endif
+
 		case    VK_ERROR_INVALID_SHADER_NV: FATAL_EXIT("NV specific error: INVALID SHADER.")
 		default : FATAL_EXIT("Unknown error. Define DEBUG_VK_ENABLED to find out more.")
 	}

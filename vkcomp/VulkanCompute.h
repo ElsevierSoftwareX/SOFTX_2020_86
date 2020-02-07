@@ -5,6 +5,15 @@
 #include "ComputeInterface.h"
 #include "CommandListBased.h"
 #include "macrodefs.h"
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	#include <android/native_activity.h>
+	#include <android/asset_manager.h>
+	#include <android_native_app_glue.h>
+	#include <sys/system_properties.h>
+	#include "VulkanAndroid.h"
+#endif
+
 #include "vulkan.h"
 #include <string.h>
 #include <vector>
@@ -67,6 +76,11 @@ public:
 	int32_t loadAndCompileShader(CrossFileAdapter, const std::string);
 	void printContextInformation();
 	void *deviceSideAllocation(const uint64_t size, const BufferUsage buffer_usage, const uint32_t stride = 0);
+
+#ifdef __ANDROID__
+	void setAndroidAppCtx(android_app *app_ctx);
+	android_app *getAndroidAppCtx();
+#endif
 
 	void startCreatePipeline(std::string shader_id);
 	void selectPipeline(const uint32_t selected_pipeline);
@@ -142,6 +156,10 @@ private:
 	VkDebugReportCallbackEXT debug_callback_handle;
 	void setupDebug();
 	void destroyDebug();
+#endif
+
+#ifdef __ANDROID__
+	android_app *androidapp;
 #endif
 
 	int32_t getMemoryType(uint32_t typeBits, VkFlags properties, const VkPhysicalDeviceMemoryProperties *const mem_props);

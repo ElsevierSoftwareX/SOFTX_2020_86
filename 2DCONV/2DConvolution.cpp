@@ -94,11 +94,15 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("2DCONV")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+#endif
 }
 
 
@@ -180,7 +184,6 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 
 	memcpy(B_outputFromGpu,B_gpu,sizeof(DATA_TYPE)*NI*NJ);
 }
-
 
 int main(int argc, char *argv[])
 {

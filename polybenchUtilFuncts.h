@@ -10,9 +10,44 @@
 #include "vkcomp/ComputeInterface.h"
 #include <iostream>
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	#include <android/native_activity.h>
+	#include <android/asset_manager.h>
+	#include <android_native_app_glue.h>
+	#include <sys/system_properties.h>
+	#include "VulkanAndroid.h"
+#endif
+
 //define a small float value
 #define SMALL_FLOAT_VAL 0.00000001f
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	#define ANDROID_MAIN(benchmarkname) android_app *androidapp;\
+	int main(int argc, char *argv[]);\
+	void handleAppCommand(android_app * app, int32_t cmd) {\
+		if (cmd == APP_CMD_INIT_WINDOW) {\
+			char argv[1][10] = {benchmarkname};\
+			main((int)1,(char**)argv);\
+			ANativeActivity_finish(app->activity);\
+		}\ 
+	}\
+	void android_main(android_app* state) {\
+		androidapp = state;\ 
+		androidapp->onAppCmd = handleAppCommand;\ 
+		int ident, events;\
+		struct android_poll_source* source;\
+		while ((ident = ALooper_pollAll(-1, NULL, &events, (void**)&source)) >= 0) {\
+			if (source != NULL)	{\
+				source->process(androidapp, source);\
+			}\
+			if (androidapp->destroyRequested != 0) {\
+				break;\
+			}\
+		}\
+	}
+#else 
+	#define ANDROID_MAIN(benchmarkname) {}
+#endif
 
 bool isNumber(const std::string& s)
 {
