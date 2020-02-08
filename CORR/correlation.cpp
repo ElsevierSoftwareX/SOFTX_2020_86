@@ -145,14 +145,19 @@ void compareResults(DATA_TYPE* symmat, DATA_TYPE* symmat_outputFromGpu)
 	}
 	
 	// print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("CORR")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to N %d and M %d", N,M);
+#endif
 }
 
 void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA_TYPE* stddev, DATA_TYPE* symmat,
@@ -298,8 +303,8 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 		t_end = rtclock();
 		
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
 	/*DATA_TYPE valueAtSymmatIndexMTimesMPlus1PlusMPoint = 1.0;
@@ -347,7 +352,7 @@ int main(int argc, char *argv[])
 	correlation(data, mean, stddev, symmat);
 	t_end = rtclock();
 
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
     
 	compareResults(symmat, symmat_outputFromGpu);
 

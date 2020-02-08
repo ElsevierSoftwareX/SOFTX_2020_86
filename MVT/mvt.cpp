@@ -97,14 +97,19 @@ void compareResults(DATA_TYPE* x1, DATA_TYPE* x1_outputFromGpu, DATA_TYPE* x2, D
 	}
 	
 	// Print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("MVT")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
-    vk->createContext();
+	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to N %d. Was: %d", N, (N*2));
+#endif
 }
 
 void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DATA_TYPE* y_1, DATA_TYPE* y_2, 
@@ -199,8 +204,8 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
     vk->startCreateCommandList();
@@ -248,7 +253,7 @@ int main(int argc, char *argv[])
 	runMvt(a, x1, x2, y_1, y_2);
 
 	t_end = rtclock();
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 	
 	compareResults(x1, x1_outputFromGpu, x2, x2_outputFromGpu);
 

@@ -1,0 +1,95 @@
+apply plugin: 'com.android.application'
+//apply from: '../gradle/outputfilename.gradle'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "vkpolybench.mvt"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags "-Wall -O3 --std=gnu++11"
+                arguments "-DANDROID_STL=c++_shared", '-DANDROID_TOOLCHAIN=clang'
+            }
+        }
+    }
+    sourceSets {
+        main.assets.srcDirs = ['assets']
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+task copyTask {
+
+    dependsOn 'compileGLSLtoSPV'
+
+    copy {
+        from '../common/res/drawable'
+        into "src/main/res/drawable"
+        include 'icon.png'
+    }
+
+    doLast{
+        copy {
+            from '../common/shaders/MVT'
+            into "assets"
+            include '*.spv'
+        }
+    }
+
+}
+
+
+task compileGLSLtoSPV {
+
+        mkdir "${projectDir}/../common/shaders/MVT"
+
+        String p = "${projectDir}/../../MVT/"
+        println "path is $p"
+
+        fileList(p).each { File file -> 
+            String infile = p + file.name
+            String outfile = "${projectDir}/../common/shaders/MVT/" + file.name + ".spv"
+            String hfile = p + "HDcommon.h"
+            println "[GLSC gradle task] Will compile $infile in $outfile"
+            doFirst{ 
+                def process = "glslc ${infile} -I ${hfile} -D__ANDROID__ -fshader-stage=compute -o ${outfile}".execute()
+                process.waitFor()
+                process.waitForProcessOutput(System.out, System.err)
+                if(process.exitValue()) throw new GradleException("Error in compiling shader(s)") 
+            } 
+        }
+}
+
+File[] fileList(String dir) {
+    file(dir).listFiles({File f -> f.name.endsWith(".comp")} as FileFilter).sort()
+}
+
+task cleanProper(type: Delete) {
+    
+    delete "${projectDir}/../common/shaders/MVT"
+    delete "${projectDir}/src/main/res"
+    delete "${projectDir}/.cxx"
+    delete "assets"
+
+}
+
+clean.dependsOn cleanProper
+preBuild.dependsOn copyTask

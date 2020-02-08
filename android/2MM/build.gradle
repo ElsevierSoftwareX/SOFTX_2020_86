@@ -46,12 +46,13 @@ task copyTask {
         include 'icon.png'
     }
 
-     copy {
-        from '../common/shaders/2MM'
-        into "assets"
-        include '*.spv'
+    doLast{
+        copy {
+            from '../common/shaders/2MM'
+            into "assets"
+            include '*.spv'
+        }
     }
-
 }
 
 
@@ -67,7 +68,7 @@ task compileGLSLtoSPV {
             String outfile = "${projectDir}/../common/shaders/2MM/" + file.name + ".spv"
             String hfile = p + "HDcommon.h"
             println "[GLSC gradle task] Will compile $infile in $outfile"
-            doLast{ 
+            doFirst{ 
                 def process = "glslc ${infile} -I ${hfile} -D__ANDROID__ -fshader-stage=compute -o ${outfile}".execute()
                 process.waitFor()
                 process.waitForProcessOutput(System.out, System.err)
