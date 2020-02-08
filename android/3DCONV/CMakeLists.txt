@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1 FATAL_ERROR)
 
-set(NAME "2DCONV")
+set(NAME "3DCONV")
 
 set(SRC_DIR ../../${NAME})
 set(VKCOMP_DIR ../../vkcomp)

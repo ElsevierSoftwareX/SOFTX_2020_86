@@ -4,7 +4,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 26
     defaultConfig {
-        applicationId "vkpolybench.twodconv"
+        applicationId "vkpolybench.threedconv"
         minSdkVersion 19
         targetSdkVersion 26
         versionCode 1
@@ -47,7 +47,7 @@ task copyTask {
     }
 
      copy {
-        from '../common/shaders/2DCONV'
+        from '../common/shaders/3DCONV'
         into "assets"
         include '*.spv'
     }
@@ -56,14 +56,14 @@ task copyTask {
 
 task compileGLSLtoSPV {
 
-        mkdir "${projectDir}/../common/shaders/2DCONV"
+        mkdir "${projectDir}/../common/shaders/3DCONV"
 
-        String p = "${projectDir}/../../2DCONV/"
+        String p = "${projectDir}/../../3DCONV/"
         println "path is $p"
 
         fileList(p).each { File file -> 
             String infile = p + file.name
-            String outfile = "${projectDir}/../common/shaders/2DCONV/" + file.name + ".spv"
+            String outfile = "${projectDir}/../common/shaders/3DCONV/" + file.name + ".spv"
             String hfile = p + "HDcommon.h"
             println "[GLSC gradle task] Will compile $infile in $outfile"
             doLast{ 
@@ -81,7 +81,7 @@ File[] fileList(String dir) {
 
 task cleanProper(type: Delete) {
     
-    delete "${projectDir}/../common/shaders/2DCONV"
+    delete "${projectDir}/../common/shaders/3DCONV"
     delete "${projectDir}/src/main/res"
     delete "${projectDir}/.cxx"
     delete "assets"

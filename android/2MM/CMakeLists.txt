@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1 FATAL_ERROR)
 
-set(NAME "2DCONV")
+set(NAME "2MM")
 
 set(SRC_DIR ../../${NAME})
 set(VKCOMP_DIR ../../vkcomp)
@@ -33,9 +33,7 @@ add_library(native-app-glue STATIC ${ANDROID_NDK}/sources/android/native_app_glu
 
 #add_subdirectory(${VKCOMP_DIR} ${VKCOMP_DIR})
 
-
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
-
 
 include_directories(${VKCOMP_DIR})
 include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
