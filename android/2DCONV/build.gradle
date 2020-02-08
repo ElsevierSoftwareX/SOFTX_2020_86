@@ -46,9 +46,9 @@ task copyTask {
         include 'icon.png'
     }
 
-    copy {
+     copy {
         from '../common/shaders/2DCONV'
-        into "src/main/assets"
+        into "assets"
         include '*.spv'
     }
 
@@ -73,4 +73,14 @@ File[] fileList(String dir) {
     file(dir).listFiles({File f -> f.name.endsWith(".comp")} as FileFilter).sort()
 }
 
+task cleanProper(type: Delete) {
+    
+    delete "../common/shaders/2DCONV"
+    delete "src/main/res"
+    delete ".cxx"
+    delete "assets"
+
+}
+
+clean.dependsOn cleanProper
 preBuild.dependsOn copyTask

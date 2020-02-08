@@ -175,10 +175,12 @@ void VulkanCompute::createContext()
 	errorCheck();
 
 	if(gpus>1 && preferred_vendor == NO_VENDOR_PREFERRED){
-		std::cout << "More than one Vulkan capable device is detected: " << std::endl;
+		DBG_PRINT("More than one Vulkan capable device is detected: ");
 		for (uint32_t i = 0; i < gpu_list.size(); i++){
 			vkGetPhysicalDeviceProperties(gpu_list[i], &phys_device_props);
-			std::cout << "Device " << i << ": " << phys_device_props.deviceName << " - Vendor ID " << phys_device_props.vendorID << std::endl;
+			std::string outs("Device " + std::to_string(i) + ": " + phys_device_props.deviceName + " - Vendor ID " + std::to_string(phys_device_props.vendorID));
+			DBG_PRINT(outs.c_str());
+			//std::cout << "Device " << i << ": " << phys_device_props.deviceName << " - Vendor ID " << phys_device_props.vendorID << std::endl;
 		}
 	}
 
@@ -384,14 +386,27 @@ void VulkanCompute::createContext()
 
 void VulkanCompute::printContextInformation()
 {
-	std::cout << "Device ID : " << phys_device_props.deviceID << std::endl;
+	DBG_PRINT2("Device ID : ", std::to_string(phys_device_props.deviceID).c_str());
+	DBG_PRINT2("Device Name : ", phys_device_props.deviceName);
+	DBG_PRINT2("Vendor id : ", fromVendorIDtoString(phys_device_props.vendorID).c_str());
+	DBG_PRINT2("Device type : ",  fromVKDeviceTypeToString(phys_device_props.deviceType));
+	std::string api_ver	(std::to_string(((phys_device_props.apiVersion >> 22) & 0x3FF))+"."+
+						std::to_string(((phys_device_props.apiVersion >> 12) & 0x3FF))+"."+
+						std::to_string(((phys_device_props.apiVersion & 0xFFF))));
+	DBG_PRINT2("API Version : ",  api_ver.c_str());
+
+#ifndef __ANDROID__
+	if(glslc_folder.length() <= 1) DBG_PRINT("Will assume VULKAN_SDK folder is set in path");
+#endif
+
+	/*std::cout << "Device ID : " << phys_device_props.deviceID << std::endl;
 	std::cout << "Device Name : " << phys_device_props.deviceName << std::endl;
 	std::cout << "Vendor id : " << fromVendorIDtoString(phys_device_props.vendorID).c_str() << std::endl;
 	std::cout << "Device type : " << fromVKDeviceTypeToString(phys_device_props.deviceType) << std::endl;
 	std::cout << "API Version : " << ((phys_device_props.apiVersion >> 22) & 0x3FF) << "." <<
 									 ((phys_device_props.apiVersion >> 12) & 0x3FF) << "." << 
 									 ((phys_device_props.apiVersion & 0xFFF)) << std::endl;
-	if(glslc_folder.length() <= 1) std::cout << "Will assume VULKAN_SDK folder is set in path" << std::endl;
+	if(glslc_folder.length() <= 1) std::cout << "Will assume VULKAN_SDK folder is set in path" << std::endl;*/
 	
 }
 
@@ -438,15 +453,18 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
 
 	std::string s = f.getAbsolutePath();
+	s = s.substr(s.find_last_of(FILE_SEPARATOR)+1);
 
 	if(!f.endsWith(".spv"))
 		s += ".spv";
+
+	DBG_PRINT2("Will load ", s.c_str());
 	
 	AAssetManager* assetManager = androidapp->activity->assetManager;
 	AAsset* asset = AAssetManager_open(assetManager, s.c_str(), AASSET_MODE_STREAMING);
-	assert(asset);
+	if(asset==NULL) FATAL_EXIT("Asset is null")
 	size_t size = AAsset_getLength(asset);
-	assert(size > 0);
+	if(size<=0) FATAL_EXIT("Invalid asset size")
 
 	char *shaderCode = new char[size];
 	AAsset_read(asset, shaderCode, size);

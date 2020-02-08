@@ -16,6 +16,13 @@
 	#include <android_native_app_glue.h>
 	#include <sys/system_properties.h>
 	#include "VulkanAndroid.h"
+	#define PRINT_RESULT(x,y) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x, y)
+	#define PRINT_SANITY(x,y,z) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x, y, z)
+	#define PRINT_INFO(x) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x)
+#else 
+	#define PRINT_RESULT(x,y) fprintf(stdout,x,y)
+	#define PRINT_SANITY(x,y,z) printf(x,y,z)
+	#define PRINT_INFO(x) std::cout << x << std::endl
 #endif
 
 //define a small float value
