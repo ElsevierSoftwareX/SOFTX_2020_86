@@ -13,6 +13,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sstream>
 
 #if defined(_WIN32)
 	#include <direct.h>
@@ -43,5 +44,14 @@ void unix_time(struct timespec *spec);
 int clock_gettime(int, timespec *spec);
 float getElapsedTime(const timespec *const tstart, const timespec *const tend);
 int setFIFO99andCore(const int coreID);
+
+template<typename T>
+std::string anyToString(const T& value)
+{
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
 
 #endif

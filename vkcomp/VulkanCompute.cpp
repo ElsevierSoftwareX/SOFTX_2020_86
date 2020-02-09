@@ -21,8 +21,8 @@ vulkanDebugCallback(VkDebugReportFlagsEXT msg_flags,     //type of error reporti
 					void* usr_data						 //user data for more refined debug msg processing.
 				)
 {
-	std::cout << msg << std::endl;
-
+	//std::cout << msg << std::endl;
+	DBG_PRINT(msg.c_str())
 	return false; //always return false for some reason I did not understand
 }
 
@@ -38,7 +38,7 @@ void VulkanCompute::setupDebug()
 		//HMODULE vulkan_module = LoadLibrary(L"vulkan-1.dll");
 		//fvkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT) GetProcAddress(vulkan_module, "vkCreateDebugReportCallbackEXT");
 		//if(fvkCreateDebugReportCallbackEXT!=NULL) DBG_PRINT("GetProcAddress did the trick")
-		/*else*/ FATAL_EXIT("Unable to fetch PFN for destroying debug callback")
+		/*else*/ FATAL_EXIT("Unable to fetch PFN for creating debug callback")
 	}
 
 	if (fvkDestroyDebugReportCallbackEXT != NULL)
@@ -97,7 +97,9 @@ void VulkanCompute::createContext()
 	ComputeInterface::createContext();
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
-		vks::android::loadVulkanLibrary();
+	if(!vks::android::loadVulkanLibrary()){
+		FATAL_EXIT("Unable to load Vulkan library")
+	}
 #endif
 
 	//pre_allocated_push_constants = (uint8_t*)malloc(PRE_ALLOCATED_BUFFER_FOR_PUSH_CONSTANTS_SIZE);
@@ -386,7 +388,7 @@ void VulkanCompute::createContext()
 
 void VulkanCompute::printContextInformation()
 {
-	DBG_PRINT2("Device ID : ", std::to_string(phys_device_props.deviceID).c_str());
+	DBG_PRINT2("Device ID : ", anyToString(phys_device_props.deviceID).c_str());
 	DBG_PRINT2("Device Name : ", phys_device_props.deviceName);
 	DBG_PRINT2("Vendor id : ", fromVendorIDtoString(phys_device_props.vendorID).c_str());
 	DBG_PRINT2("Device type : ",  fromVKDeviceTypeToString(phys_device_props.deviceType));
@@ -395,7 +397,7 @@ void VulkanCompute::printContextInformation()
 						std::to_string(((phys_device_props.apiVersion & 0xFFF))));
 	DBG_PRINT2("API Version : ",  api_ver.c_str());
 
-#ifndef __ANDROID__
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
 	if(glslc_folder.length() <= 1) DBG_PRINT("Will assume VULKAN_SDK folder is set in path");
 #endif
 
@@ -437,19 +439,19 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 
 }
 
-#ifdef __ANDROID__
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 
-	void VulkanCompute::setAndroidAppCtx(android_app *app_ctx){
-		androidapp = app_ctx;
-	}
+void VulkanCompute::setAndroidAppCtx(android_app *app_ctx){
+	androidapp = app_ctx;
+}
 
-	android_app *VulkanCompute::getAndroidAppCtx(){
-		return androidapp;
-	}
+android_app *VulkanCompute::getAndroidAppCtx(){
+	return androidapp;
+}
 
 #endif
 
-#ifdef __ANDROID__
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
 
 	std::string s = f.getAbsolutePath();
@@ -1381,5 +1383,9 @@ VulkanCompute::~VulkanCompute()
 	//free(PSB_data); bug. Damaged Heap????? Makes sense. Was never malloc'ed...
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
+
+#ifdef __ANDROID__
+	vks::android::freeVulkanLibrary();
+#endif
 
 }

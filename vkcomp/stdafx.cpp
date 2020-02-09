@@ -64,7 +64,8 @@ float getElapsedTime(const timespec *const tstart, const timespec *const tend)
 //TODO: do we still need this?
 int setFIFO99andCore(const int coreID){
 
-	/*struct sched_param param;
+#ifdef __linux__ 
+	struct sched_param param;
 	param.sched_priority = 99;
 
 	int res = sched_setscheduler(getpid(), SCHED_FIFO, 
@@ -86,6 +87,10 @@ int setFIFO99andCore(const int coreID){
 		return res;
 	}
 
-	return res;*/
-	return 0;
+	return res;
+#else 
+	printf("Core and priorities [setFIFO99andCore]: Unimplemented\n");
+	return -1;
+#endif
+
 }
