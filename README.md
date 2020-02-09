@@ -49,7 +49,9 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
 
 # Tests
 
-![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/master/vkpolyimgs/ubuntutests.png)
+![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/ubuntutests.png)  
+![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/wintests.png)  
+![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/androidtests.png)  
 
 ## Status of each benchmark
 
@@ -78,6 +80,7 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
 * NVIDIA TITAN RTX
 * NVIDIA Xavier SoC 
 * INTEL HD Graphics 530
+* ARM MALI G72
 
 # Known issues
 
