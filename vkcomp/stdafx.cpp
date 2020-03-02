@@ -1,4 +1,7 @@
-// stdafx.cpp : source file that includes just the standard includes
+/**
+ * stdafx.cpp: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
 
 #include "stdafx.h"
 #include <memory>

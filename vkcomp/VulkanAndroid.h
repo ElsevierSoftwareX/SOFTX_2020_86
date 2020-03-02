@@ -1,4 +1,8 @@
 /*
+VulkanAndroid.cpp: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+This work is derived from Sascha Willems git repo on Vulkan Samples.
+This file is licensed as follows:
 * Android Vulkan function pointer prototypes
 *
 * Copyright (C) 2016 by Sascha Willems - www.saschawillems.de

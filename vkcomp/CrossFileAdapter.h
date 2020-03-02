@@ -1,17 +1,17 @@
+/**
+ * CrossFileAdapter.h: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #ifndef CROSS_FILE_ADAPTER_H
 #define CROSS_FILE_ADAPTER_H
 
 #include <fstream>
 #include "stdafx.h"
 
-/*!
-@author Nicola Capodieci
-@date November, 2016
-@brief Cross compatible string adapter class
-
+/*
 This class is used to resolve differences in handling strings for filepaths.
 Windows only APIs, uses LPCWSTR strings, while a regular std::string does the trick pretty much everywhere else.
-
 */
 class CrossFileAdapter
 {

@@ -1,3 +1,8 @@
+/**
+ * ComputeInterface.cpp: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #include "stdafx.h"
 #include "ComputeInterface.h"
 #include "macrodefs.h"
@@ -20,6 +25,7 @@ std::string ComputeInterface::fromVendorIDtoString(uint32_t vendorID)
 		case INTEL_PREFERRED: return "INTEL";
 		case ARM_MALI_PREFERRED: return "ARM";
 		case QUALCOMM_PREFERRED: return "QUALCOMM";
+		case IMG_TECH_PREFERRED: return "IMAGINATION TECHNOLOGY";
 		default: return "UNKNOWN";
 	}
 }

@@ -1,6 +1,11 @@
 #ifndef STDAFX_H
 #define STDAFX_H
 
+/**
+ * stdafx.h: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 //OS/platform indipendent headers
 
 #if defined(_WIN32)

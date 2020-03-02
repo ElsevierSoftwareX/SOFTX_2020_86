@@ -1,3 +1,8 @@
+/**
+ * macrodefs.h: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #ifndef MACRO_DEFS_H
 #define MACRO_DEFS_H
 

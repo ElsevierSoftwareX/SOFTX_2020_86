@@ -1,6 +1,8 @@
 /**
- * gramschmidt.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * gramschmidt.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <unistd.h>
@@ -157,13 +159,9 @@ void gramschmidtVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE*
 	DATA_TYPE *R_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * M * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE *Q_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * M * N, BufferUsage::BUF_INOUT);
 
-	 /*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	/*dim3 gridKernel1(1, 1);*/
     ComputeWorkDistribution_t grid1(1,1);
-	/*dim3 gridKernel2((size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X)), 1);*/
     ComputeWorkDistribution_t grid2((size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X)), 1);
-	/*dim3 gridKernel3((size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X)), 1);*/
     ComputeWorkDistribution_t grid3((size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X)), 1);
 
     vk->startCreatePipeline("gskernel1");
@@ -206,8 +204,6 @@ void gramschmidtVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE*
 		vk->submitWork();
 		vk->deviceSynch();
 		
-	
-
 		vk->startCreateCommandList();
 			for(int k = 0; k < N; k++){
 				vk->selectPipeline(hPipeline1);
@@ -224,16 +220,6 @@ void gramschmidtVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* R, DATA_TYPE*
 		vk->deviceSynch();
 
 		t_start = rtclock();
-		/*int k;
-		for (k = 0; k < N; k++)
-		{
-			gramschmidt_kernel1<<<gridKernel1,block>>>(A_gpu, R_gpu, Q_gpu, k);
-			cudaThreadSynchronize();
-			gramschmidt_kernel2<<<gridKernel2,block>>>(A_gpu, R_gpu, Q_gpu, k);
-			cudaThreadSynchronize();
-			gramschmidt_kernel3<<<gridKernel3,block>>>(A_gpu, R_gpu, Q_gpu, k);
-			cudaThreadSynchronize();
-		}*/
 		vk->submitWork();
 		vk->deviceSynch();
 		t_end = rtclock();

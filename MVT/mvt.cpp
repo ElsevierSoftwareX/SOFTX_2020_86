@@ -1,6 +1,8 @@
 /**
- * mvt.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * mvt.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -144,8 +146,6 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 	DATA_TYPE* y_1_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE* y_2_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 
-	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((size_t)ceil((float)N/ ((float)DIM_THREAD_BLOCK_X)), 1);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
     ComputeWorkDistribution_t grid((size_t)ceil((float)N/ ((float)DIM_THREAD_BLOCK_X)), 1);
 
@@ -196,9 +196,6 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 		vk->deviceSynch();
 		
 		t_start = rtclock();
-		/*mvt_kernel1<<<grid,block>>>(a_gpu,x1_gpu,y_1_gpu);
-		mvt_kernel2<<<grid,block>>>(a_gpu,x2_gpu,y_2_gpu);
-		cudaThreadSynchronize();*/
 		vk->submitWork();
 		vk->deviceSynch();
 		t_end = rtclock();

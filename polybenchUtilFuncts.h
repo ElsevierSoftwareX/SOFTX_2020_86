@@ -1,6 +1,7 @@
-//polybenchUtilFuncts.h
-//Scott Grauer-Gray (sgrauerg@gmail.com)
-//Functions used across hmpp codes
+/*
+polybenchUtilFuncts.h: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 
 #ifndef POLYBENCH_UTIL_FUNCTS_H
 #define POLYBENCH_UTIL_FUNCTS_H

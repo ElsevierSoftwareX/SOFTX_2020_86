@@ -1,3 +1,8 @@
+/*
+VulkanCompute.h: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
+
 #ifndef VULKAN_COMPUTE_H
 #define VULKAN_COMPUTE_H
 

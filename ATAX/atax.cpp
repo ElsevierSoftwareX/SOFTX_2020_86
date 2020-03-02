@@ -1,6 +1,8 @@
 /**
- * atax.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * atax.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -194,10 +196,7 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 
 		vk->submitWork();
 		vk->deviceSynch();
-		/*atax_kernel1<<< grid1, block >>>(A_gpu,x_gpu,tmp_gpu);
-		cudaThreadSynchronize();
-		atax_kernel2<<< grid2, block >>>(A_gpu,y_gpu,tmp_gpu);
-		cudaThreadSynchronize();*/
+
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
@@ -210,8 +209,6 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 	vk->finalizeCommandList();
 	vk->submitWork();
 	vk->deviceSynch();
-	
-	//cudaMemcpy(y_outputFromGpu, y_gpu, sizeof(DATA_TYPE) * NX, cudaMemcpyDeviceToHost);
 
     memcpy(y_outputFromGpu,y_gpu,sizeof(DATA_TYPE) * NX);
 

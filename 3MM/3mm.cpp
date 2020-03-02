@@ -1,6 +1,8 @@
 /**
- * 3mm.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * 3mm.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>

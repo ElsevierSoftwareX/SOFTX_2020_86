@@ -1,3 +1,7 @@
+/*
+VulkanCompute.cpp: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 
 #include "VulkanCompute.h"
 #include "stdafx.h"
@@ -1268,9 +1272,9 @@ void VulkanCompute::freeResources()
 	//(4)	device side allocated buffers
 	//(5)	reset cmd buffers in order to avoid surprises
 
-	// we do not destroy the PSB here. We keep consistent with the semantics of all the other API modules (PRINCIPLE [num]).
+	// we do not destroy the PSB here. We keep consistent with the semantics of all the other API modules.
 	// For commodity here it is:
-	// PRINCIPLE [insert number] : freeResource will only act on device side allocated buffers. freeResources will act on everything
+	// freeResource will only act on device side allocated buffers. freeResources will act on everything
 	// allocated on host and device memory AFTER the creation of the context. This includes device side allocated buffers, but not persistent 
 	// staging buffers/constant buffers/push and spec. constants
 

@@ -1,6 +1,8 @@
 /**
- * bicg.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * bigc.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -275,7 +277,7 @@ int main(int argc, char** argv)
 	free(q);
 	free(s_outputFromGpu);
 	free(q_outputFromGpu);
-    	vk.freeResources();
+    vk.freeResources();
 
   	return EXIT_SUCCESS;
 }

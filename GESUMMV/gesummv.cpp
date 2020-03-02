@@ -1,8 +1,9 @@
 /**
- * gesummv.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * gesummv.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
-
 
 #include <unistd.h>
 #include <stdio.h>
@@ -127,9 +128,6 @@ void gesummvVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* x, 
 	DATA_TYPE *y_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE *tmp_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 
-	  /*
-	dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((unsigned int)ceil( ((float)N) / ((float)block.x) ), 1);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((unsigned int)ceil( ((float)N) / ((float)block.x) ), 1);
 
@@ -174,8 +172,6 @@ void gesummvVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* x, 
 		vk->deviceSynch();
 
 		t_start = rtclock();
-		/*gesummv_kernel<<< grid, block>>>(A_gpu,B_gpu,x_gpu, y_gpu, tmp_gpu);
-		cudaThreadSynchronize();*/
 		vk->submitWork();
 		vk->deviceSynch();
 		t_end = rtclock();
