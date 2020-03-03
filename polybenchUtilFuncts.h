@@ -85,6 +85,7 @@ int parseDeviceSelectionFromArgs(const int argc, const char *const argv[])
 		std::cout << "		AMD or RADEON" << std::endl;
 		std::cout << "		QUALCOMM or ADRENO" << std::endl;
 		std::cout << "		POWERVR" << std::endl;
+		std::cout << "		INTEL" << std::endl;
 		std::cout << " " << std::endl;
 		std::cout << "* For changing data sizes and constants: modify the values in the HDcommon.h file in this directory." << std::endl;
 		std::cout << "Do note that changing values in HDcommon.h implies recompiling both host and device code." << std::endl;
