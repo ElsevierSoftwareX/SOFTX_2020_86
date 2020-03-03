@@ -39,7 +39,7 @@ For **building**
 * In Windows:
     * Open a powershell terminal and type *compileCodes.bat*  
 * In Android:
-    * Each benchmark has to be invidually compiled. Navigate through *vkpolybench/android//[BENCHMARK_NAME/]*
+    * Each benchmark has to be invidually compiled. On a shell, navigate through *vkpolybench/android/[BENCHMARK_NAME]*
     * type *gradle assembleDebug*  
     
 For **running** all the benchmarks (after build)
@@ -50,14 +50,14 @@ For **running** all the benchmarks (after build)
       
 * In case more than one Vulkan capables device are present in the tested system:  
     * in *compileCodes.sh* or *compileCodes.bat* change *DEVICE_SELECTION* variable from 0 to:   
-        * */[deviceId/]*, as an integer indicating the device identifier of your preferred GPU, or   
-        * */[deviceVendorString/]*, as a string identifier of the device vendor (e.g. nvidia or intel)  
+        * *[deviceId]*, as an integer indicating the device identifier of your preferred GPU, or   
+        * *[deviceVendorString]*, as a string identifier of the device vendor (e.g. nvidia or intel)  
 
 * For Android:
-    * Once a benchmark app is built, type on a shell:  
-    \[path to ANDROID_SDK\]sdk\platform-tools\adb.exe install \[path to vkpolybench repo\]vkpolybench\android\2DCONV\build\outputs\apk\debug\2DCONV-debug.apk  
+    * Once a benchmark app is built and your phone is connected to the host PC, type on a shell:  
+    [path to ANDROID_SDK]\sdk\platform-tools\adb.exe install [path to the repo]\vkpolybench\android\2DCONV\build\outputs\apk\debug\2DCONV-debug.apk  
     Your app should now be installed in your smartphone. Substitute 2DCONV with any other compiled benchmark.  
-    * type: \[path to ANDROID_SDK\]sdk\platform-tools\adb.exe logcat -s "vulkanandroid". This will capture the logcat output related to vkpolybench   
+    * type: [path to ANDROID_SDK]\sdk\platform-tools\adb.exe logcat -s "vulkanandroid". This will capture the logcat output related to vkpolybench   
     * On your phone tap the newly installed app and check the output on the logcat console   
 
 For **cleaning** (obj files and generated binary spv related to all the benchmarks)
@@ -65,7 +65,7 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
     * Open a terminal and type *./compileCodes clean*
 * In Windows:
     * Open a powershell terminal and type *compileCodes.bat clean*
-* In Android
+* In Android:
     * Open a shell on your host PC and type *gradle clean*  
 
 # Tests
