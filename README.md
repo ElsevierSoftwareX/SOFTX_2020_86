@@ -55,9 +55,9 @@ For **running** all the benchmarks (after build)
 
 * For Android:
     * Once a benchmark app is built and your phone is connected to the host PC, type on a shell:  
-    [path to ANDROID_SDK]\sdk\platform-tools\adb.exe install [path to the repo]\vkpolybench\android\2DCONV\build\outputs\apk\debug\2DCONV-debug.apk  
+    *[path to ANDROID_SDK]\sdk\platform-tools\adb.exe install [path to the repo]\vkpolybench\android\2DCONV\build\outputs\apk\debug\2DCONV-debug.apk*  
     Your app should now be installed in your smartphone. Substitute 2DCONV with any other compiled benchmark.  
-    * type: [path to ANDROID_SDK]\sdk\platform-tools\adb.exe logcat -s "vulkanandroid". This will capture the logcat output related to vkpolybench   
+    * type: *[path to ANDROID_SDK]\sdk\platform-tools\adb.exe logcat -s "vulkanandroid"*. This will capture the logcat output related to vkpolybench   
     * On your phone tap the newly installed app and check the output on the logcat console   
 
 For **cleaning** (obj files and generated binary spv related to all the benchmarks)
