@@ -1,6 +1,10 @@
 #ifndef _HD_COMMON_ATAX
 #define _HD_COMMON_ATAX
 
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
+
 #define DATA_TYPE float
 #ifndef __ANDROID__
 #define NX 4096

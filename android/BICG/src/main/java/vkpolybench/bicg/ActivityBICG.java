@@ -1,3 +1,6 @@
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 package vkpolybench.bicg;
 
 import android.app.AlertDialog;

@@ -1,6 +1,10 @@
 #ifndef _HD_COMMON_FDTD2D
 #define _HD_COMMON_FDTD2D
 
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
+
 #define DATA_TYPE float
 #define tmax 500
 #ifndef __ANDROID__

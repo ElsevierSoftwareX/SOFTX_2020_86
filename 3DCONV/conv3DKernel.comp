@@ -1,6 +1,8 @@
 
 #version 450
-
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 /*
 Data types, sizes and other constants are defined in the following header file.
 Warning: if GLSL_TO_SPV_UPDATE_COMPILATION_CHECK in VulkanCompute.h is defined,

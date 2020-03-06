@@ -1,3 +1,6 @@
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 package vkpolybench.threemm;
 
 import android.app.AlertDialog;

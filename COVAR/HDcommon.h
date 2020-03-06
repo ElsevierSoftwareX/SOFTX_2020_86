@@ -1,6 +1,10 @@
 #ifndef _HD_COMMON_COVAR
 #define _HD_COMMON_COVAR
 
+/*
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
+
 #define DATA_TYPE float
 
 #ifndef __ANDROID__
