@@ -1,3 +1,8 @@
+/**
+ * CrossFileAdapter.cpp: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #include "CrossFileAdapter.h"
 
 
@@ -32,6 +37,15 @@ LPCWSTR CrossFileAdapter::getLPCWSTRpath() {
 }
 #endif
 
+bool CrossFileAdapter::endsWith(std::string const &ending) {
+
+	std::string fullString = abs_path;
+
+	if (fullString.length() >= ending.length()) 
+		return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+	else return false;
+
+}
 
 std::string CrossFileAdapter::getAbsolutePath()
 {

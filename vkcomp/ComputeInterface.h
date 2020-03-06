@@ -1,3 +1,8 @@
+/**
+ * ComputeInterface.h: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #ifndef COMPUTE_INTERFACE_H
 #define COMPUTE_INTERFACE_H
 
@@ -22,10 +27,6 @@
 #define DEVICE_TO_HOST 1
 
 /**
-@author Nicola Capodieci
-@date November, 2016
-@brief Compute Interface member function definitions
-
 All the API wrappers extends this class, hence each member function should be implemented.
 None of the member functions listed in this class should be called outside of a API Wrapper implementation class.
 Do note that some of this member functions are not purely virtual.
@@ -92,7 +93,7 @@ Also, new generation APIs pose restrictions on when and how call some of the mem
 		*/
 		virtual void printContextInformation();
 
-		/*! \fn void* deviceSideAllocation(const uint64_t size, const BufferUsafe buffer_usage, const uint32_t stride)
+		/*! \fn void* deviceSideAllocation(const uint64_t size, const BufferUsage buffer_usage, const uint32_t stride)
 		\brief Allocates memory on the device and returns a pointer in which the user can read or write at host level.
 		The way this method is thought to be implemented is by using a "device side allocation table", which is a data structure that matches a host visible pointer to a device visible pointer.
 		The idea is to hide from the final user the difficulties in handling different pointers that live in different address spaces. This is obtained by
@@ -129,18 +130,6 @@ Also, new generation APIs pose restrictions on when and how call some of the mem
 		\param transfer_direction: HOST_TO_DEVICE or DEVICE_TO_HOST. Must be coherent with the declared buffer usage specified as the second argument of deviceSideAllocation.
 		*/
 		virtual void synchBuffer(void **, const uint8_t) = 0;
-
-		//We have to do this as it turns out that C++ templates are not that much better than Java Generics...
-		//At the time I was writing the OpenGLCS class, I noticed the fact that being opengl written in pure C, there is no way
-		//of templating uniform updates without getting REALLY messy. I.E. having a glUniform<T> is simply too much stuff to add in terms of classes.
-		//Hence, the solution of using three un-templated functions instead of a templated one.
-		//On the other hand, when I was writing the DX11CS code, I realized how such approach won't scale due to the ridiculous amount of code
-		//to handle in order to update a constant buffer (the closest thing to an openGL uniform according to https://msdn.microsoft.com/en-us/windows/uwp/gaming/porting-uniforms-and-attributes)
-		//When I will have to do stuff with the APIs derived from the CommandListBased interface, things are going to get even more crazy in terms of lines of code.
-		//However, all API wrappers shall be created equal, so fuck it.
-		//The best I can do as of now, is using private functions for mitigating the exponential growth of similar lines of code, so to internally parametrizing stuff.
-		//(E.G. copySymbolWithKnownByteWidth in DX11CS.h/cpp)
-		//I wrote this in case anyone (especially me) would question the design of this.
 
 		/*!\fn void copySymbolInt(int value, std::string program, const uint32_t location)
 		\brief copies an integer value constant from host to device
@@ -183,7 +172,7 @@ Also, new generation APIs pose restrictions on when and how call some of the mem
 		/*! \fn deviceSynch()
 		\brief blocks the host until all computations enqueued in the GPU are finished.
 		*/
-		virtual inline void deviceSynch()=0;
+		virtual void deviceSynch()=0;
 
 		/*! \fn void freeResource(void* resource)
 		\brief frees the specified resource

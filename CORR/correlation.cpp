@@ -1,6 +1,8 @@
 /**
- * correlation.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * correlation.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -145,14 +147,19 @@ void compareResults(DATA_TYPE* symmat, DATA_TYPE* symmat_outputFromGpu)
 	}
 	
 	// print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("CORR")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to N %d and M %d", N,M);
+#endif
 }
 
 void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA_TYPE* stddev, DATA_TYPE* symmat,
@@ -202,24 +209,15 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 	DATA_TYPE *stddev_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *mean_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (M+1), BufferUsage::BUF_INOUT);
 
-	/*  
-	dim3 block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
-	dim3 grid1((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_1_X)), 1);*/
     ComputeWorkDistribution_t block1(DIM_THREAD_BLOCK_KERNEL_1_X, DIM_THREAD_BLOCK_KERNEL_1_Y);
 	ComputeWorkDistribution_t grid1((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_1_X)), 1);
   
-	/*dim3 block2(DIM_THREAD_BLOCK_KERNEL_2_X, DIM_THREAD_BLOCK_KERNEL_2_Y);
-	dim3 grid2((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_2_X)), 1);*/
     ComputeWorkDistribution_t block2(DIM_THREAD_BLOCK_KERNEL_2_X, DIM_THREAD_BLOCK_KERNEL_2_Y);
 	ComputeWorkDistribution_t grid2((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_2_X)), 1);
 	
-	/*dim3 block3(DIM_THREAD_BLOCK_KERNEL_3_X, DIM_THREAD_BLOCK_KERNEL_3_Y);
-	dim3 grid3((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_X)), (size_t)(ceil((float)(N)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_Y)));*/
     ComputeWorkDistribution_t block3(DIM_THREAD_BLOCK_KERNEL_3_X, DIM_THREAD_BLOCK_KERNEL_3_Y);
 	ComputeWorkDistribution_t grid3((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_X)), (size_t)(ceil((float)(N)) / ((float)DIM_THREAD_BLOCK_KERNEL_3_Y)));
 
-	/*dim3 block4(DIM_THREAD_BLOCK_KERNEL_4_X, DIM_THREAD_BLOCK_KERNEL_4_Y);
-	dim3 grid4((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_4_X)), 1);*/
     ComputeWorkDistribution_t block4(DIM_THREAD_BLOCK_KERNEL_4_X, DIM_THREAD_BLOCK_KERNEL_4_Y);
 	ComputeWorkDistribution_t grid4((size_t)(ceil((float)(M)) / ((float)DIM_THREAD_BLOCK_KERNEL_4_X)), 1);
 
@@ -287,26 +285,12 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 		t_start = rtclock();
 		vk->submitWork();
 		vk->deviceSynch();
-		/*mean_kernel<<< grid1, block1 >>>(mean_gpu,data_gpu);
-		cudaThreadSynchronize();
-		std_kernel<<< grid2, block2 >>>(mean_gpu,stddev_gpu,data_gpu);
-		cudaThreadSynchronize();
-		reduce_kernel<<< grid3, block3 >>>(mean_gpu,stddev_gpu,data_gpu);
-		cudaThreadSynchronize();
-		corr_kernel<<< grid4, block4 >>>(symmat_gpu,data_gpu);
-		cudaThreadSynchronize();*/
 		t_end = rtclock();
 		
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
-
-	/*DATA_TYPE valueAtSymmatIndexMTimesMPlus1PlusMPoint = 1.0;
-	cudaMemcpy(&(symmat_gpu[(M)*(M+1) + (M)]), &valueAtSymmatIndexMTimesMPlus1PlusMPoint, sizeof(DATA_TYPE), cudaMemcpyHostToDevice);
-    	WTF? Looks like he's changing a single value of the output buffer using a H2D memcpy. Ridiculous.
-	I am using my brain properly and I'll put this instruction into the last kernel (to be executed by thread with global id 0).
-	*/
 
     vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(symmat_gpu),DEVICE_TO_HOST);
@@ -314,7 +298,6 @@ void correlationVulkan(VulkanCompute *vk, DATA_TYPE* data, DATA_TYPE* mean, DATA
 	vk->submitWork();
 	vk->deviceSynch();
 
-	//cudaMemcpy(symmat_outputFromGpu, symmat_gpu, sizeof(DATA_TYPE) * (M+1) * (N+1), cudaMemcpyDeviceToHost);
     memcpy(symmat_outputFromGpu, symmat_gpu, sizeof(DATA_TYPE) * (M+1) * (N+1));
 
 }
@@ -347,7 +330,7 @@ int main(int argc, char *argv[])
 	correlation(data, mean, stddev, symmat);
 	t_end = rtclock();
 
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
     
 	compareResults(symmat, symmat_outputFromGpu);
 

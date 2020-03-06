@@ -1,0 +1,10 @@
+  
+file('.').eachDir { sub ->
+    if (sub.name != 'common') {
+        if (file("$sub.name/build.gradle").exists()) {
+            println("Adding project $sub.name")
+            include ":$sub.name"
+            project(":$sub.name").projectDir = new File("$sub.name")
+        }
+    }
+}

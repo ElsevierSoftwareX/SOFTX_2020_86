@@ -1,3 +1,8 @@
+/**
+ * CommandListBased.h: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #ifndef COMMAND_LIST_BASED_H
 #define COMMAND_LIST_BASED_H
 
@@ -14,15 +19,10 @@
 
 #define PIPELINE_HANDLE uint32_t
 
-/*!
-@author Nicola Capodieci
-@date December, 2016
-@brief CommandListBased member function definitions
-
+/*
 This class is meant to be extended by wrappers of new generations APIs such as Vulkan and Direct Compute 12.
-The purpose of this class is to create a specific interface able to deal with the different paradigm of new GPU oriente APIs, as
+The purpose of this class is to create a specific interface able to deal with the different paradigm of new GPU oriented APIs, as
 the ComputeInterface alone cannot expose such functionalities to older APIs.
-
 */
 class CommandListBased
 {

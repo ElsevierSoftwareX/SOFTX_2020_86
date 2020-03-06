@@ -1,6 +1,8 @@
 /**
- * mvt.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * mvt.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -97,14 +99,19 @@ void compareResults(DATA_TYPE* x1, DATA_TYPE* x1_outputFromGpu, DATA_TYPE* x2, D
 	}
 	
 	// Print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("MVT")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
-    vk->createContext();
+	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to N %d. Was: %d", N, (N*2));
+#endif
 }
 
 void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DATA_TYPE* y_1, DATA_TYPE* y_2, 
@@ -139,8 +146,6 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 	DATA_TYPE* y_1_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 	DATA_TYPE* y_2_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N, BufferUsage::BUF_INOUT);
 
-	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((size_t)ceil((float)N/ ((float)DIM_THREAD_BLOCK_X)), 1);*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
     ComputeWorkDistribution_t grid((size_t)ceil((float)N/ ((float)DIM_THREAD_BLOCK_X)), 1);
 
@@ -191,16 +196,13 @@ void mvtVulkan(VulkanCompute *vk, DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DA
 		vk->deviceSynch();
 		
 		t_start = rtclock();
-		/*mvt_kernel1<<<grid,block>>>(a_gpu,x1_gpu,y_1_gpu);
-		mvt_kernel2<<<grid,block>>>(a_gpu,x2_gpu,y_2_gpu);
-		cudaThreadSynchronize();*/
 		vk->submitWork();
 		vk->deviceSynch();
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
     vk->startCreateCommandList();
@@ -248,7 +250,7 @@ int main(int argc, char *argv[])
 	runMvt(a, x1, x2, y_1, y_2);
 
 	t_end = rtclock();
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 	
 	compareResults(x1, x1_outputFromGpu, x2, x2_outputFromGpu);
 

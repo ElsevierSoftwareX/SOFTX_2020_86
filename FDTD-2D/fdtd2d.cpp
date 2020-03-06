@@ -1,6 +1,8 @@
 /**
- * fdtd2d.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * fdtd2d.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -113,14 +115,20 @@ void compareResults(DATA_TYPE* hz1, DATA_TYPE* hz2)
 	}
 	
 	// Print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+
+ANDROID_MAIN("FDTD-2D")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to NX %d and NY %d", NX, NY);
+#endif
 }
 
 void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* ey, DATA_TYPE* hz, DATA_TYPE* hz_outputFromGpu)
@@ -160,9 +168,6 @@ void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* 
 	DATA_TYPE *ex_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NX * (NY + 1), BufferUsage::BUF_INOUT);
 	DATA_TYPE *ey_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * (NX + 1) * NY, BufferUsage::BUF_INOUT);
 	DATA_TYPE *hz_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * NX * NY, BufferUsage::BUF_INOUT);
-
-	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid( (size_t)ceil(((float)NY) / ((float)block.x)), (size_t)ceil(((float)NX) / ((float)block.y)));*/
 
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil(((float)NY) / ((float)block.x)), (size_t)ceil(((float)NX) / ((float)block.y)));
@@ -235,21 +240,11 @@ void fdtdVulkan(VulkanCompute *vk, DATA_TYPE* _fict_, DATA_TYPE* ex, DATA_TYPE* 
 		vk->submitWork();
 		vk->deviceSynch();
 
-		/*for(int t = 0; t< tmax; t++)
-		{
-			fdtd_step1_kernel<<<grid,block>>>(_fict_gpu, ex_gpu, ey_gpu, hz_gpu, t);
-			cudaThreadSynchronize();
-			fdtd_step2_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
-			cudaThreadSynchronize();
-			fdtd_step3_kernel<<<grid,block>>>(ex_gpu, ey_gpu, hz_gpu, t);
-			cudaThreadSynchronize();
-		}*/
-		
 		t_end = rtclock();
 		
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
     vk->startCreateCommandList();
@@ -290,7 +285,7 @@ int main(int argc, char *argv[])
 	runFdtd(_fict_, ex, ey, hz);
 	t_end = rtclock();
 	
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 	
 	compareResults(hz, hz_outputFromGpu);
 

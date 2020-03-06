@@ -1,6 +1,8 @@
 /**
- * bicg.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * bigc.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -89,14 +91,20 @@ void compareResults(DATA_TYPE* s, DATA_TYPE* s_outputFromGpu, DATA_TYPE* q, DATA
 	}
 	
 	// print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+
+ANDROID_MAIN("BICG")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to NX %d and NY %d", NX,NY);
+#endif
 }
 
 void bicg_cpu(DATA_TYPE* A, DATA_TYPE* r, DATA_TYPE* s, DATA_TYPE* p, DATA_TYPE* q)
@@ -209,8 +217,8 @@ void bicgVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* r, DATA_TYPE* s, DAT
 		t_end = rtclock();
 		
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 
 	}
 
@@ -258,7 +266,7 @@ int main(int argc, char** argv)
 	bicg_cpu(A, r, s, p, q);
 	t_end = rtclock();
 
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 
 	compareResults(s, s_outputFromGpu, q, q_outputFromGpu);
 
@@ -269,7 +277,7 @@ int main(int argc, char** argv)
 	free(q);
 	free(s_outputFromGpu);
 	free(q_outputFromGpu);
-    	vk.freeResources();
+    vk.freeResources();
 
   	return EXIT_SUCCESS;
 }

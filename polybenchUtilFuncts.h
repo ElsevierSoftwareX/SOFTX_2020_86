@@ -1,6 +1,7 @@
-//polybenchUtilFuncts.h
-//Scott Grauer-Gray (sgrauerg@gmail.com)
-//Functions used across hmpp codes
+/*
+polybenchUtilFuncts.h: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 
 #ifndef POLYBENCH_UTIL_FUNCTS_H
 #define POLYBENCH_UTIL_FUNCTS_H
@@ -10,9 +11,51 @@
 #include "vkcomp/ComputeInterface.h"
 #include <iostream>
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	#include <android/native_activity.h>
+	#include <android/asset_manager.h>
+	#include <android_native_app_glue.h>
+	#include <sys/system_properties.h>
+	#include "VulkanAndroid.h"
+	#define PRINT_RESULT(x,y) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x, y)
+	#define PRINT_SANITY(x,y,z) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x, y, z)
+	#define PRINT_INFO(x) __android_log_print(ANDROID_LOG_INFO, "vulkanandroid", x)
+#else 
+	#define PRINT_RESULT(x,y) fprintf(stdout,x,y)
+	#define PRINT_SANITY(x,y,z) printf(x,y,z)
+	#define PRINT_INFO(x) std::cout << x << std::endl
+#endif
+
 //define a small float value
 #define SMALL_FLOAT_VAL 0.00000001f
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	#define ANDROID_MAIN(benchmarkname) android_app *androidapp;\
+	int main(int argc, char *argv[]);\
+	void handleAppCommand(android_app * app, int32_t cmd) {\
+		if (cmd == APP_CMD_INIT_WINDOW) {\
+			char argv[1][10] = {benchmarkname};\
+			main((int)1,(char**)argv);\
+			ANativeActivity_finish(app->activity);\
+		}\
+	}\
+	void android_main(android_app* state) {\
+		androidapp = state;\
+		androidapp->onAppCmd = handleAppCommand;\
+		int ident, events;\
+		struct android_poll_source* source;\
+		while ((ident = ALooper_pollAll(-1, NULL, &events, (void**)&source)) >= 0) {\
+			if (source != NULL)	{\
+				source->process(androidapp, source);\
+			}\
+			if (androidapp->destroyRequested != 0) {\
+				break;\
+			}\
+		}\
+	}
+#else 
+	#define ANDROID_MAIN(benchmarkname) 
+#endif
 
 bool isNumber(const std::string& s)
 {
@@ -42,6 +85,7 @@ int parseDeviceSelectionFromArgs(const int argc, const char *const argv[])
 		std::cout << "		AMD or RADEON" << std::endl;
 		std::cout << "		QUALCOMM or ADRENO" << std::endl;
 		std::cout << "		POWERVR" << std::endl;
+		std::cout << "		INTEL" << std::endl;
 		std::cout << " " << std::endl;
 		std::cout << "* For changing data sizes and constants: modify the values in the HDcommon.h file in this directory." << std::endl;
 		std::cout << "Do note that changing values in HDcommon.h implies recompiling both host and device code." << std::endl;

@@ -1,6 +1,8 @@
 /**
- * syrk.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * syrk.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -100,39 +102,20 @@ void compareResults(DATA_TYPE* C, DATA_TYPE* C_outputFromGpu)
 	}
 	
 	// print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+ANDROID_MAIN("SYRK")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to N %d and M %d", N, M);
+#endif
 }
-
-
-/*
-Original CUDA implementation. You can see the stupidity here in having unused arguments in the kernel. 
-ALPHA and BETA are read from macro definitions and not as pushed from kernel submission. 
-Such arguments would translate into two additional push constants in vulkan, all for the sake of nothing.
-I am not doing it. The GLSL kernel only has buffers as kernel arguments.
-__global__ void syrk_kernel(DATA_TYPE ALPHA, DATA_TYPE BETA, DATA_TYPE *a, DATA_TYPE *c)
-{
-	//  C := alpha*A*A' + beta*C 
-	int j = blockIdx.x * blockDim.x + threadIdx.x;
-	int i = blockIdx.y * blockDim.y + threadIdx.y;
-
-	if ((i < N) && (j < N))
-	{
-		c[i * N + j] *= beta;
-		int k;		
-		for(k=0; k< M; k++)
-		{
-			c[i * N + j] += alpha * a[i * M + k] * a[j * M + k];
-		}
-	}
-}
-*/
 
 void syrkVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* C, DATA_TYPE* C_outputFromGpu)
 {
@@ -151,13 +134,9 @@ void syrkVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* C, DATA_TYPE* C_outp
 		exit(-1);
 	}
 
-    /*Same possible bug as in SYR2K. From original version, different allocation size for host/device
-    with respect to the output buffer (C, C_gpu)*/
 	DATA_TYPE* A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N * M, BufferUsage::BUF_INOUT);
 	DATA_TYPE* C_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE) * N * N, BufferUsage::BUF_INOUT);
 
-	/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((size_t)(ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X))), (size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_Y)));*/
     ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
     ComputeWorkDistribution_t grid((size_t)(ceil(((float)N) / ((float)DIM_THREAD_BLOCK_X))), (size_t)ceil(((float)N) / ((float)DIM_THREAD_BLOCK_Y)));
 
@@ -195,13 +174,11 @@ void syrkVulkan(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* C, DATA_TYPE* C_outp
 		t_start = rtclock();
 		vk->submitWork();
 		vk->deviceSynch();
-		/*syrk_kernel<<<grid,block>>>(alpha, beta, A_gpu,C_gpu);
-		cudaThreadSynchronize();*/
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	
 	}
 
@@ -237,14 +214,14 @@ int main(int argc, char *argv[])
 	t_start = rtclock();
 	syrk(A, C);
 	t_end = rtclock();
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 
 	compareResults(C, C_outputFromGpu);
 
 	free(A);
 	free(C);
 	free(C_outputFromGpu);
-    	vk.freeResources();
+    vk.freeResources();
 
 	return EXIT_SUCCESS;
 }

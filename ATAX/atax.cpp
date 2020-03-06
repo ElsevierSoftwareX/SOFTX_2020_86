@@ -1,6 +1,8 @@
 /**
- * atax.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * atax.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <stdio.h>
@@ -69,14 +71,20 @@ void compareResults(DATA_TYPE *z, DATA_TYPE *z_outputFromGpu)
 	}
 	
 	// print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
 }
 
+
+ANDROID_MAIN("ATAX")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to NX %d and NY %d", NX,NY);
+#endif
 }
 
 void atax_cpu(DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_TYPE* tmp)
@@ -188,15 +196,12 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 
 		vk->submitWork();
 		vk->deviceSynch();
-		/*atax_kernel1<<< grid1, block >>>(A_gpu,x_gpu,tmp_gpu);
-		cudaThreadSynchronize();
-		atax_kernel2<<< grid2, block >>>(A_gpu,y_gpu,tmp_gpu);
-		cudaThreadSynchronize();*/
+
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
     vk->startCreateCommandList();
@@ -204,8 +209,6 @@ void ataxGpu(VulkanCompute *vk, DATA_TYPE* A, DATA_TYPE* x, DATA_TYPE* y, DATA_T
 	vk->finalizeCommandList();
 	vk->submitWork();
 	vk->deviceSynch();
-	
-	//cudaMemcpy(y_outputFromGpu, y_gpu, sizeof(DATA_TYPE) * NX, cudaMemcpyDeviceToHost);
 
     memcpy(y_outputFromGpu,y_gpu,sizeof(DATA_TYPE) * NX);
 
@@ -237,7 +240,7 @@ int main(int argc, char** argv)
 	t_start = rtclock();
 	atax_cpu(A, x, y, tmp);
 	t_end = rtclock();
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 
 	compareResults(y, y_outputFromGpu);
 

@@ -1,3 +1,7 @@
+/*
+VulkanCompute.cpp: This file is part of the vkpolybench test suite,
+See LICENSE.md for vkpolybench and other 3rd party licenses. 
+*/
 
 #include "VulkanCompute.h"
 #include "stdafx.h"
@@ -21,8 +25,8 @@ vulkanDebugCallback(VkDebugReportFlagsEXT msg_flags,     //type of error reporti
 					void* usr_data						 //user data for more refined debug msg processing.
 				)
 {
-	std::cout << msg << std::endl;
-
+	//std::cout << msg << std::endl;
+	DBG_PRINT(msg.c_str())
 	return false; //always return false for some reason I did not understand
 }
 
@@ -38,7 +42,7 @@ void VulkanCompute::setupDebug()
 		//HMODULE vulkan_module = LoadLibrary(L"vulkan-1.dll");
 		//fvkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT) GetProcAddress(vulkan_module, "vkCreateDebugReportCallbackEXT");
 		//if(fvkCreateDebugReportCallbackEXT!=NULL) DBG_PRINT("GetProcAddress did the trick")
-		/*else*/ FATAL_EXIT("Unable to fetch PFN for destroying debug callback")
+		/*else*/ FATAL_EXIT("Unable to fetch PFN for creating debug callback")
 	}
 
 	if (fvkDestroyDebugReportCallbackEXT != NULL)
@@ -95,6 +99,12 @@ void VulkanCompute::createContext()
 	//todo: create ExtensionBased interface
 
 	ComputeInterface::createContext();
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	if(!vks::android::loadVulkanLibrary()){
+		FATAL_EXIT("Unable to load Vulkan library")
+	}
+#endif
 
 	//pre_allocated_push_constants = (uint8_t*)malloc(PRE_ALLOCATED_BUFFER_FOR_PUSH_CONSTANTS_SIZE);
 
@@ -155,6 +165,10 @@ void VulkanCompute::createContext()
 	VK_CRITICAL_CALL(vkCreateInstance(&c_app_info, NULL, &instance);)
 	errorCheck();
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+	vks::android::loadVulkanFunctions(instance);
+#endif
+
 #ifdef DEBUG_VK_ENABLED
 	setupDebug();
 #endif
@@ -167,10 +181,12 @@ void VulkanCompute::createContext()
 	errorCheck();
 
 	if(gpus>1 && preferred_vendor == NO_VENDOR_PREFERRED){
-		std::cout << "More than one Vulkan capable device is detected: " << std::endl;
+		DBG_PRINT("More than one Vulkan capable device is detected: ");
 		for (uint32_t i = 0; i < gpu_list.size(); i++){
 			vkGetPhysicalDeviceProperties(gpu_list[i], &phys_device_props);
-			std::cout << "Device " << i << ": " << phys_device_props.deviceName << " - Vendor ID " << phys_device_props.vendorID << std::endl;
+			std::string outs("Device " + std::to_string(i) + ": " + phys_device_props.deviceName + " - Vendor ID " + std::to_string(phys_device_props.vendorID));
+			DBG_PRINT(outs.c_str());
+			//std::cout << "Device " << i << ": " << phys_device_props.deviceName << " - Vendor ID " << phys_device_props.vendorID << std::endl;
 		}
 	}
 
@@ -376,14 +392,27 @@ void VulkanCompute::createContext()
 
 void VulkanCompute::printContextInformation()
 {
-	std::cout << "Device ID : " << phys_device_props.deviceID << std::endl;
+	DBG_PRINT2("Device ID : ", anyToString(phys_device_props.deviceID).c_str());
+	DBG_PRINT2("Device Name : ", phys_device_props.deviceName);
+	DBG_PRINT2("Vendor id : ", fromVendorIDtoString(phys_device_props.vendorID).c_str());
+	DBG_PRINT2("Device type : ",  fromVKDeviceTypeToString(phys_device_props.deviceType));
+	std::string api_ver	(std::to_string(((phys_device_props.apiVersion >> 22) & 0x3FF))+"."+
+						std::to_string(((phys_device_props.apiVersion >> 12) & 0x3FF))+"."+
+						std::to_string(((phys_device_props.apiVersion & 0xFFF))));
+	DBG_PRINT2("API Version : ",  api_ver.c_str());
+
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
+	if(glslc_folder.length() <= 1) DBG_PRINT("Will assume VULKAN_SDK folder is set in path");
+#endif
+
+	/*std::cout << "Device ID : " << phys_device_props.deviceID << std::endl;
 	std::cout << "Device Name : " << phys_device_props.deviceName << std::endl;
 	std::cout << "Vendor id : " << fromVendorIDtoString(phys_device_props.vendorID).c_str() << std::endl;
 	std::cout << "Device type : " << fromVKDeviceTypeToString(phys_device_props.deviceType) << std::endl;
 	std::cout << "API Version : " << ((phys_device_props.apiVersion >> 22) & 0x3FF) << "." <<
 									 ((phys_device_props.apiVersion >> 12) & 0x3FF) << "." << 
 									 ((phys_device_props.apiVersion & 0xFFF)) << std::endl;
-	if(glslc_folder.length() <= 1) std::cout << "Will assume VULKAN_SDK folder is set in path" << std::endl;
+	if(glslc_folder.length() <= 1) std::cout << "Will assume VULKAN_SDK folder is set in path" << std::endl;*/
 	
 }
 
@@ -414,6 +443,60 @@ bool VulkanCompute::checkGLSLSPVtimestampDifference(const std::string &glsl_src,
 
 }
 
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+
+void VulkanCompute::setAndroidAppCtx(android_app *app_ctx){
+	androidapp = app_ctx;
+}
+
+android_app *VulkanCompute::getAndroidAppCtx(){
+	return androidapp;
+}
+
+#endif
+
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id){
+
+	std::string s = f.getAbsolutePath();
+	s = s.substr(s.find_last_of(FILE_SEPARATOR)+1);
+
+	if(!f.endsWith(".spv"))
+		s += ".spv";
+
+	DBG_PRINT2("Will load ", s.c_str());
+	
+	AAssetManager* assetManager = androidapp->activity->assetManager;
+	AAsset* asset = AAssetManager_open(assetManager, s.c_str(), AASSET_MODE_STREAMING);
+	if(asset==NULL) FATAL_EXIT("Asset is null")
+	size_t size = AAsset_getLength(asset);
+	if(size<=0) FATAL_EXIT("Invalid asset size")
+
+	char *shaderCode = new char[size];
+	AAsset_read(asset, shaderCode, size);
+	AAsset_close(asset);
+
+	VkShaderModule shaderModule;
+	VkShaderModuleCreateInfo moduleCreateInfo;
+	moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	moduleCreateInfo.pNext = NULL;
+	moduleCreateInfo.codeSize = size;
+	moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+	moduleCreateInfo.flags = 0;
+
+	VK_CRITICAL_CALL(vkCreateShaderModule(device, &moduleCreateInfo, VK_NULL_HANDLE, &shaderModule);)
+	errorCheck();
+
+	delete[] shaderCode;
+
+	program_map.insert(std::pair<std::string, VkShaderModule>(shader_id, shaderModule));
+
+	DBG_PRINT("SPV binary Shader compiled successfully")
+
+	return (int32_t)program_map.size();
+
+}
+#else
 int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::string shader_id)
 {
 	std::string compilation_output = "";
@@ -425,6 +508,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 #endif
 
 	size_t index = f.getAbsolutePath().find_last_of(FILE_SEPARATOR);
+
 	if (index != std::string::npos) {
 #ifdef _WIN32
 		index++;
@@ -509,6 +593,7 @@ int32_t VulkanCompute::loadAndCompileShader(CrossFileAdapter f, const std::strin
 
 	return (int32_t)program_map.size();
 }
+#endif 
 
 int32_t VulkanCompute::loadAndCompileShader(const std::string s, const std::string shader_id)
 {
@@ -1075,7 +1160,7 @@ void VulkanCompute::launchComputation(const std::string computation_identifier)
 
 }
 
-inline void VulkanCompute::deviceSynch()
+void VulkanCompute::deviceSynch()
 {
 	if (CommandListBased::verifyCmdListState(CMD_LIST_IN_CREATION))
 	{
@@ -1187,9 +1272,9 @@ void VulkanCompute::freeResources()
 	//(4)	device side allocated buffers
 	//(5)	reset cmd buffers in order to avoid surprises
 
-	// we do not destroy the PSB here. We keep consistent with the semantics of all the other API modules (PRINCIPLE [num]).
+	// we do not destroy the PSB here. We keep consistent with the semantics of all the other API modules.
 	// For commodity here it is:
-	// PRINCIPLE [insert number] : freeResource will only act on device side allocated buffers. freeResources will act on everything
+	// freeResource will only act on device side allocated buffers. freeResources will act on everything
 	// allocated on host and device memory AFTER the creation of the context. This includes device side allocated buffers, but not persistent 
 	// staging buffers/constant buffers/push and spec. constants
 
@@ -1274,7 +1359,11 @@ void VulkanCompute::errorCheck()
 		case	VK_ERROR_INCOMPATIBLE_DRIVER: FATAL_EXIT("Driver not compatible")
 		case	VK_ERROR_TOO_MANY_OBJECTS: FATAL_EXIT("Too many objects")
 		case	VK_ERROR_FORMAT_NOT_SUPPORTED: FATAL_EXIT("Format not supported")
+
+#ifndef VK_USE_PLATFORM_ANDROID_KHR
 		case	VK_ERROR_FRAGMENTED_POOL: FATAL_EXIT("Fragmented pool error")
+#endif
+
 		case    VK_ERROR_INVALID_SHADER_NV: FATAL_EXIT("NV specific error: INVALID SHADER.")
 		default : FATAL_EXIT("Unknown error. Define DEBUG_VK_ENABLED to find out more.")
 	}
@@ -1298,5 +1387,9 @@ VulkanCompute::~VulkanCompute()
 	//free(PSB_data); bug. Damaged Heap????? Makes sense. Was never malloc'ed...
 	vkDestroyDevice(device, NULL);
 	vkDestroyInstance(instance, NULL);
+
+#ifdef __ANDROID__
+	vks::android::freeVulkanLibrary();
+#endif
 
 }

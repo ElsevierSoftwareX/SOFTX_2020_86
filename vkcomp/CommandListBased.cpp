@@ -1,3 +1,8 @@
+/**
+ * CommandListBased.cpp: This file is part of the vkpolybench test suite,
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
+ */
+
 #include "stdafx.h"
 #include "CommandListBased.h"
 #include "macrodefs.h"

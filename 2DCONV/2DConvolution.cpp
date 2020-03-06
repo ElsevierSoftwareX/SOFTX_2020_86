@@ -1,6 +1,8 @@
 /**
- * 2DConvolution.cpp: This file is part of the PolyBench/GPU 1.0 test suite,
- * Vulkan version
+ * 2DConvolution.cpp: This file is part of the vkpolybench test suite,
+ * Vulkan version.
+ * CPU reference implementation is derived from PolyBench/GPU 1.0.
+ * See LICENSE.md for vkpolybench and other 3rd party licenses. 
  */
 
 #include <unistd.h>
@@ -91,16 +93,20 @@ void compareResults(DATA_TYPE* B, DATA_TYPE* B_outputFromGpu)
 		}
 	}
 	// Print results
-	printf("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n", PERCENT_DIFF_ERROR_THRESHOLD, fail);
+	PRINT_SANITY("Non-Matching CPU-GPU Outputs Beyond Error Threshold of %4.2f Percent: %d\n",PERCENT_DIFF_ERROR_THRESHOLD,fail);
 }
 
+ANDROID_MAIN("2DCONV")
 
 void GPU_argv_init(VulkanCompute *vk)
 {
 	vk->createContext();
 	vk->printContextInformation();
+#ifdef __ANDROID__
+	vk->setAndroidAppCtx(androidapp);
+	PRINT_SANITY("INFO: This VK benchmark has been compiled for Android. Problem size is reduced to NI %d and NJ %d", NI,NJ);
+#endif
 }
-
 
 void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFromGpu)
 {
@@ -115,7 +121,7 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 
 	if (vk->loadAndCompileShader(crossFileAdapter, "conv2DKernel") == -1)
 	{
-		std::cout << "Error in compiling shader conv2DKernel.comp" << std::endl;
+		PRINT_INFO("Error in compiling shader conv2DKernel.comp");
 		exit(-1);
 	}
 
@@ -123,8 +129,6 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 	DATA_TYPE *A_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
     DATA_TYPE *B_gpu = (DATA_TYPE*) vk->deviceSideAllocation(sizeof(DATA_TYPE)*NI*NJ, BufferUsage::BUF_INOUT);
 
-		/*dim3 block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
-	dim3 grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );*/
 	ComputeWorkDistribution_t block(DIM_THREAD_BLOCK_X, DIM_THREAD_BLOCK_Y);
 	ComputeWorkDistribution_t grid((size_t)ceil( ((float)NI) / ((float)block.x) ), (size_t)ceil( ((float)NJ) / ((float)block.y)) );
 
@@ -159,19 +163,16 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 
 		t_start = rtclock();
 
-		/*Convolution2D_kernel<<<grid,block>>>(A_gpu,B_gpu);
-		cudaThreadSynchronize();*/
 		vk->submitWork();
 		vk->deviceSynch();
 
 		t_end = rtclock();
 
 		if(iterations>1&&iter==0)
-			fprintf(stdout, "GPU (Warmup) Runtime: %0.6lfs\n", t_end - t_start);
-		else fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
+			PRINT_RESULT("GPU (Warmup) Runtime: %0.6lfs\n", t_end-t_start);
+		else PRINT_RESULT("GPU Runtime: %0.6lfs\n", t_end - t_start);
 	}
 
-	//cudaMemcpy(B_outputFromGpu, B_gpu, sizeof(DATA_TYPE) * NI * NJ, cudaMemcpyDeviceToHost);
 	vk->startCreateCommandList();
 		vk->synchBuffer(PPTR(B_gpu),DEVICE_TO_HOST);
 	vk->finalizeCommandList();
@@ -180,7 +181,6 @@ void convolution2DVulkan(VulkanCompute *vk, DATA_TYPE *A, DATA_TYPE* B_outputFro
 
 	memcpy(B_outputFromGpu,B_gpu,sizeof(DATA_TYPE)*NI*NJ);
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 	t_start = rtclock();
 	conv2D(A, B);
 	t_end = rtclock();
-	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);
+	PRINT_RESULT("CPU Runtime: %0.6lfs\n", t_end - t_start);
 
 	compareResults(B, B_outputFromGpu);
 
