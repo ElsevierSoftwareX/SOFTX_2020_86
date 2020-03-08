@@ -1,21 +1,22 @@
-# vkpolybench  
+# <img src="https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/master/android/common/res/drawable/icon.png" alt="64px" height="64px"> vkpolybench  
 
 vkpolybench is a [Vulkan](https://www.khronos.org/vulkan/) port of the original version of [PolyBench/GPU](https://web.cse.ohio-state.edu/~pouchet.2/software/polybench/GPU/index.html).      
 All the host code and device code has been translated into Vulkan compute shaders. For the host code, an updated version of [vkcomp](https://git.hipert.unimore.it/rcavicchioli/cpu_gpu_submission) has been used: vkcomp is a wrapper of the compute pipeline of the Vulkan API. vkcomp was previously used for a 'CUDA vs Vulkan compute' comparison with respect to CPU activity during CPU to GPU command submission (paper [here](https://drops.dagstuhl.de/opus/volltexte/2019/10759/pdf/LIPIcs-ECRTS-2019-22.pdf)).  
-For device (kernel/compute shader) code, GLSL shaders are provided in the respective benchmark-specific subfolders; vkcomp will generate SPIR-V binary files starting from the provided GLSL code (.comp files).
+For device (kernel/compute shader) code, GLSL shaders are provided in the respective benchmark-specific subfolders; vkcomp will generate SPIR-V binary files starting from the provided GLSL code (.comp files).  
+See license information [here](https://git.hipert.unimore.it/ncapodieci/vkpolybench/blob/master/LICENSE.md)
 
-# Depedencies and pre-requisites 
+## Depedencies and pre-requisites 
 * A Vulkan capable GPU/device.  
 * Properly installed GPU/device driver(s).  
 * LunarG Vulkan SDK (available [here](https://www.lunarg.com/vulkan-sdk/)).
 
-## For Linux 
+### For Linux 
 vkpolybech has been tested on Ubuntu 18.04  
 * glslc executable from LunarG SDK must be reachable from the command line.  
     * type *glslc --version* in a terminal to test if it is working.
 * The *Makefile* script assumes Vulkan headers are located in */usr/include/vulkan*
 
-## For Windows 
+### For Windows 
 vkpolybench has been tested on Windows 10 Pro, 1903  
 * Download and install [cygwin](https://www.cygwin.com/). Be sure to install the following packages when asked (they are NOT installed by default):  
     * gcc-g++
@@ -24,12 +25,12 @@ vkpolybench has been tested on Windows 10 Pro, 1903
 * The *Makefile* script assumes cygwin bin folder is appended to the *path* environment variable
 * The *Makefile* script assumes the Vulkan SDK path is appended to the *path* environment variable
 
-## For Android
+### For Android
 vkpolybench has been tested on a smartphone running Android 9. Host PC was Windows 10 with Android NDK and SDK properly installed and set to path.    
 Also, [Gradle](https://gradle.org/) 6.1.1 must be installed and set to path.  
 Developer and USB debug mode on your smartphone device must be enabled. 
 
-# Compile and test
+## Compile and test
 
 Once this repository is cloned, move to the project root folder.  
 For **building**  
@@ -68,13 +69,13 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
 * In Android:
     * Open a shell on your host PC and type *gradle clean*  
 
-# Tests
+## Tests
 
 ![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/ubuntutests.png)  
 ![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/wintests.png)  
 ![alt text](https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/vkpolyandroid/vkpolyimgs/androidtests.png)  
 
-# Tested GPU devices
+## Tested GPU devices
 
 * NVIDIA GeForce RTX 2070
 * NVIDIA TITAN V
@@ -83,7 +84,7 @@ For **cleaning** (obj files and generated binary spv related to all the benchmar
 * INTEL HD Graphics 530
 * ARM MALI G72
 
-# Known issues
+## Known issues
 
 * For each benchmark, data types, sizes and other constants are defined in the *HDcommon.h* header file, that is present in each benchmark folder and relates to both 
 device and host code. 
