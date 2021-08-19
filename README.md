@@ -1,6 +1,11 @@
 # <img src="https://git.hipert.unimore.it/ncapodieci/vkpolybench/raw/master/android/common/res/drawable/iconhc.png" alt="64px" height="64px"> vkpolybench  
 
-vkpolybench is a [Vulkan](https://www.khronos.org/vulkan/) port of the original version of [PolyBench/GPU](https://web.cse.ohio-state.edu/~pouchet.2/software/polybench/GPU/index.html).      
+_If used for your research, please cite this work as: Nicola Capodieci, Roberto Cavicchioli,
+vkpolybench: A crossplatform Vulkan Compute port of the PolyBench/GPU benchmark suite,
+SoftwareX, Volume 15, 2021, 100793, ISSN 2352-7110,
+[Link to paper](https://www.sciencedirect.com/science/article/pii/S2352711021000996)_
+
+**vkpolybench** is a [Vulkan](https://www.khronos.org/vulkan/) port of the original version of [PolyBench/GPU](https://web.cse.ohio-state.edu/~pouchet.2/software/polybench/GPU/index.html).      
 All the host code and device code has been translated into Vulkan compute shaders. For the host code, an updated version of [vkcomp](https://git.hipert.unimore.it/rcavicchioli/cpu_gpu_submission) has been used: vkcomp is a wrapper of the compute pipeline of the Vulkan API. vkcomp was previously used for a 'CUDA vs Vulkan compute' comparison with respect to CPU activity during CPU to GPU command submission (paper [here](https://drops.dagstuhl.de/opus/volltexte/2019/10759/pdf/LIPIcs-ECRTS-2019-22.pdf)).  
 For device (kernel/compute shader) code, GLSL shaders are provided in the respective benchmark-specific subfolders; vkcomp will generate SPIR-V binary files starting from the provided GLSL code (.comp files).  
 See license information [here](https://git.hipert.unimore.it/ncapodieci/vkpolybench/blob/master/LICENSE.md)
